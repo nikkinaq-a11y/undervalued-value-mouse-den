@@ -1,0 +1,88 @@
+:root {
+  --den-ember: #d97a3f;
+  --den-amber: #e8b463;
+  --den-brown-dark: #2b1e17;
+  --den-brown-mid: #4a3428;
+  --den-cream: #f2e3c9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--den-brown-dark);
+  color: var(--den-cream);
+  font-family: sans-serif;
+  overflow: hidden;
+}
+
+.den {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 400px;
+  overflow: hidden;
+}
+
+.room-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--den-brown-mid);
+}
+
+/* Sprites will get real art via background-image later.
+   image-rendering keeps everything crisp at any scale. */
+.mouse,
+.fireplace,
+.couch,
+.bookshelf {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+}
+
+.zone {
+  position: absolute;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.zone-fireplace { left: 8%; bottom: 10%; }
+.zone-couch { left: 42%; bottom: 8%; }
+.zone-bookshelf { right: 8%; bottom: 10%; }
+
+.fireplace,
+.couch,
+.bookshelf {
+  width: 96px;
+  height: 96px;
+  background: var(--den-brown-dark);
+  border: 2px dashed var(--den-amber);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mouse {
+  position: absolute;
+  left: 45%;
+  bottom: 14%;
+  width: 32px;
+  height: 32px;
+  background: var(--den-ember);
+  border-radius: 4px;
+  transition: left 1.2s ease, bottom 1.2s ease;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.fireplace.lit {
+  animation: flicker 1.6s ease-in-out infinite;
+}
