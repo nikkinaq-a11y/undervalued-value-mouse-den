@@ -1,5 +1,8 @@
 :root {
   --den-brown-dark: #1b100a;
+  /* One source of truth for the scene's rendered width. The dirt surround
+     derives its tile size from this so both share the same art-pixel size. */
+  --scene-w: min(900px, 74vw, calc(76vh * 880 / 660));
 }
 
 * {
@@ -9,18 +12,28 @@
 html, body {
   margin: 0;
   min-height: 100vh;
-  background: var(--den-brown-dark);
+  background-color: var(--den-brown-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
 }
 
+body {
+  /* Packed earth around the burrow: a 64px pixel tile scaled to the same
+     art-pixel size as the room (scene width / 220 art pixels across). */
+  background-image: url("assets/images/dirt_tile.png");
+  background-repeat: repeat;
+  background-size: calc(var(--scene-w) * 64 / 220) calc(var(--scene-w) * 64 / 220);
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+}
+
 .den {
   position: relative;
   /* Fit the whole room on screen — the floor (where the mouse stands)
      is at the very bottom of the art, so it must never be cut off. */
-  width: min(1200px, 96vw, calc(94vh * 880 / 660));
+  width: var(--scene-w);
   aspect-ratio: 880 / 660;
   overflow: hidden;
   border-radius: 6px;
@@ -55,14 +68,19 @@ html, body {
 .zone-couch     { left: 60%; top: 36%; width: 38%; height: 58%; }
 .zone-bookshelf { left: 80%; top: 4%; width: 20%; height: 40%; }
 
-/* --- Mouse sprite --- */
+/* --- Mouse sprite ---
+   Sized to the room, not to the frame: the den is the mouse's own house,
+   so it stands at resident scale. Anchored by `bottom` so its feet sit on
+   the floor line regardless of how the scene is scaled. */
 .mouse {
   position: absolute;
-  width: 8%;
-  aspect-ratio: 1 / 1;
+  height: 50%;
+  /* 53x82 sprite at 50% frame height lands on the same art-pixel size as
+     the 220px-wide room, so the mouse and the den share one pixel grid. */
+  aspect-ratio: 53 / 82;
   background-size: 100% 100%;
   background-repeat: no-repeat;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
-  transition: left 1.6s ease, top 1.6s ease;
+  transition: left 1.6s ease, bottom 1.6s ease;
 }

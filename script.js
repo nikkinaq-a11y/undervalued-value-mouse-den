@@ -13,7 +13,7 @@ const ACTIVITIES = {
     minMs: 2 * UNIT,
     maxMs: 2 * UNIT,
     weight: 3,
-    position: { left: "17%", top: "76%" },
+    position: { left: "5%", bottom: "18%" },
     sprite: "assets/images/mouse_back.png",
     flip: false,
   },
@@ -21,7 +21,7 @@ const ACTIVITIES = {
     minMs: 5 * UNIT,
     maxMs: 15 * UNIT,
     weight: 2,
-    position: { left: "44%", top: "70%" },
+    position: { left: "30%", bottom: "15%" },
     sprite: "assets/images/mouse_side.png",
     flip: true,
   },
@@ -29,7 +29,7 @@ const ACTIVITIES = {
     minMs: 5 * UNIT,
     maxMs: 15 * UNIT,
     weight: 2,
-    position: { left: "72%", top: "54%" },
+    position: { left: "54%", bottom: "12%" },
     sprite: "assets/images/mouse_side.png",
     flip: false,
   },
@@ -71,7 +71,7 @@ function goToActivity(name) {
   const activity = ACTIVITIES[name];
 
   mouseEl.style.left = activity.position.left;
-  mouseEl.style.top = activity.position.top;
+  mouseEl.style.bottom = activity.position.bottom;
   mouseEl.style.backgroundImage = `url("${activity.sprite}")`;
   mouseEl.style.transform = activity.flip ? "scaleX(-1)" : "scaleX(1)";
 
