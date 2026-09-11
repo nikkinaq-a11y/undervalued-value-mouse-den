@@ -3,28 +3,31 @@
 // "nudge" the next activity by clicking a zone, but never interrupts
 // whatever the mouse is already doing.
 
-const MINUTE = 60 * 1000;
+// TEST_MODE shrinks the time unit from minutes to seconds so transitions
+// are visible while building. Set to false for the real idle pacing.
+const TEST_MODE = true;
+const UNIT = TEST_MODE ? 2 * 1000 : 60 * 1000;
 
 const ACTIVITIES = {
   fire: {
-    minMs: 2 * MINUTE,
-    maxMs: 2 * MINUTE,
+    minMs: 2 * UNIT,
+    maxMs: 2 * UNIT,
     weight: 3,
     position: { left: "17%", top: "76%" },
     sprite: "assets/images/mouse_back.png",
     flip: false,
   },
   read: {
-    minMs: 5 * MINUTE,
-    maxMs: 15 * MINUTE,
+    minMs: 5 * UNIT,
+    maxMs: 15 * UNIT,
     weight: 2,
     position: { left: "44%", top: "70%" },
     sprite: "assets/images/mouse_side.png",
     flip: true,
   },
   movie: {
-    minMs: 5 * MINUTE,
-    maxMs: 15 * MINUTE,
+    minMs: 5 * UNIT,
+    maxMs: 15 * UNIT,
     weight: 2,
     position: { left: "72%", top: "54%" },
     sprite: "assets/images/mouse_side.png",
