@@ -1,9 +1,5 @@
 :root {
-  --den-ember: #d97a3f;
-  --den-amber: #e8b463;
-  --den-brown-dark: #2b1e17;
-  --den-brown-mid: #4a3428;
-  --den-cream: #f2e3c9;
+  --den-brown-dark: #1b100a;
 }
 
 * {
@@ -12,37 +8,128 @@
 
 html, body {
   margin: 0;
-  height: 100%;
+  min-height: 100%;
   background: var(--den-brown-dark);
-  color: var(--den-cream);
-  font-family: sans-serif;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
 }
 
 .den {
   position: relative;
-  width: 100%;
-  height: 100vh;
-  min-height: 400px;
+  width: min(1200px, 96vw);
+  aspect-ratio: 880 / 660;
   overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-.room-bg {
+.den-bg {
   position: absolute;
   inset: 0;
-  background: var(--den-brown-mid);
-}
-
-/* Sprites will get real art via background-image later.
-   image-rendering keeps everything crisp at any scale. */
-.mouse,
-.fireplace,
-.couch,
-.bookshelf {
+  width: 100%;
+  height: 100%;
+  display: block;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
 }
 
+/* --- Fireplace layer: swaps lit/unlit art, flickers while lit --- */
+.fire-layer {
+  position: absolute;
+  left: 1.93%;
+  top: 41.97%;
+  width: 26.02%;
+  height: 35.91%;
+  background-image: url("assets/images/fire_unlit.png");
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  transform-origin: 50% 85%;
+}
+
+.fire-layer.lit {
+  background-image: url("assets/images/fire_lit.png");
+  animation: fire-flicker 2.6s ease-in-out infinite;
+}
+
+.fire-layer.tending {
+  animation-duration: 1.1s;
+}
+
+@keyframes fire-flicker {
+  0%, 100% { filter: brightness(1) saturate(1); transform: scaleY(1); }
+  20% { filter: brightness(1.08) saturate(1.05); transform: scaleY(1.01); }
+  45% { filter: brightness(0.95) saturate(0.97); transform: scaleY(0.99); }
+  70% { filter: brightness(1.1) saturate(1.08); transform: scaleY(1.02); }
+  85% { filter: brightness(0.97) saturate(1); transform: scaleY(1); }
+}
+
+/* --- TV layer: on/off --- */
+.tv-layer {
+  position: absolute;
+  left: 9.43%;
+  top: 12.42%;
+  width: 13.07%;
+  height: 11.06%;
+  background-image: url("assets/images/tv_off.png");
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  transition: filter 0.4s ease;
+}
+
+.tv-layer.on {
+  background-image: url("assets/images/tv_on.png");
+  animation: tv-glow 3.4s ease-in-out infinite;
+}
+
+@keyframes tv-glow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+
+/* --- Ambient light glows: soft radial pulses, no click targets --- */
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 200, 120, 0.55) 0%, rgba(255, 160, 80, 0.18) 55%, transparent 80%);
+  animation: glow-pulse 3s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.glow-lantern { left: 30%; top: 2%; width: 9%; height: 12%; animation-delay: 0.2s; }
+.glow-mantel  { left: 32%; top: 20%; width: 7%; height: 10%; animation-delay: 1.1s; }
+.glow-table   { left: 52%; top: 32%; width: 7%; height: 10%; animation-delay: 0.6s; }
+.glow-lamp    { left: 79%; top: 34%; width: 10%; height: 14%; animation-delay: 1.6s; }
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.12); }
+}
+
+/* --- Window star twinkle --- */
+.twinkle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.8);
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+
+.twinkle-a { left: 41%; top: 27%; animation-delay: 0s; }
+.twinkle-b { left: 45%; top: 30%; animation-delay: 1.2s; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* --- Interaction zones (soft nudge affordance, no hard demands) --- */
 .zone {
   position: absolute;
   border: none;
@@ -51,38 +138,23 @@ html, body {
   cursor: pointer;
 }
 
-.zone-fireplace { left: 8%; bottom: 10%; }
-.zone-couch { left: 42%; bottom: 8%; }
-.zone-bookshelf { right: 8%; bottom: 10%; }
-
-.fireplace,
-.couch,
-.bookshelf {
-  width: 96px;
-  height: 96px;
-  background: var(--den-brown-dark);
-  border: 2px dashed var(--den-amber);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.zone:hover {
+  outline: 2px dashed rgba(255, 220, 180, 0.4);
+  outline-offset: 2px;
 }
 
+.zone-fireplace { left: 1%; top: 40%; width: 28%; height: 40%; }
+.zone-couch     { left: 60%; top: 36%; width: 38%; height: 58%; }
+.zone-bookshelf { left: 80%; top: 4%; width: 20%; height: 40%; }
+
+/* --- Mouse sprite --- */
 .mouse {
   position: absolute;
-  left: 45%;
-  bottom: 14%;
-  width: 32px;
-  height: 32px;
-  background: var(--den-ember);
-  border-radius: 4px;
-  transition: left 1.2s ease, bottom 1.2s ease;
-}
-
-@keyframes flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-.fireplace.lit {
-  animation: flicker 1.6s ease-in-out infinite;
+  width: 8%;
+  aspect-ratio: 1 / 1;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  transition: left 1.6s ease, top 1.6s ease;
 }
