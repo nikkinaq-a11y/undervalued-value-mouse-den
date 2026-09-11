@@ -1,50 +1,78 @@
 // Cozy Mouse Den — activity state machine
-// Mouse auto-cycles between activities on its own pace. A visitor can
-// "nudge" the next activity by clicking a zone, but never interrupts
-// whatever the mouse is already doing.
+// The mouse cycles between activities at its own pace, walking between them.
+// A visitor can "nudge" what it does next by clicking a zone, but never
+// interrupts whatever it is already doing.
 
 // TEST_MODE shrinks the time unit from minutes to seconds so transitions
 // are visible while building. Set to false for the real idle pacing.
 const TEST_MODE = true;
 const UNIT = TEST_MODE ? 2 * 1000 : 60 * 1000;
 
+// Standing poses are 82 art px tall and read as 22.5% of the frame height,
+// which matches the mouse to the room's furniture. Every other pose is
+// scaled from that same ruler so the character never changes size.
+const STANDING_ART_H = 82;
+const STANDING_PCT = 22.5;
+
+const SPRITES = {
+  front: { file: "mouse_front.png", w: 49, h: 82 },
+  side:  { file: "mouse_side.png",  w: 52, h: 82 },
+  back:  { file: "mouse_back.png",  w: 44, h: 82 },
+  walk:  { file: "mouse_walk.png",  w: 67, h: 78 },
+  sit:   { file: "mouse_sit.png",   w: 57, h: 70 },
+  lie:   { file: "mouse_lie.png",   w: 70, h: 42 },
+};
+
 const ACTIVITIES = {
   fire: {
     minMs: 2 * UNIT,
     maxMs: 2 * UNIT,
     weight: 3,
-    position: { left: "5%", bottom: "18%" },
-    sprite: "assets/images/mouse_back.png",
+    position: { left: "25%", bottom: "31%" },
+    pose: "back",
     flip: false,
   },
   read: {
     minMs: 5 * UNIT,
     maxMs: 15 * UNIT,
     weight: 2,
-    position: { left: "30%", bottom: "15%" },
-    sprite: "assets/images/mouse_side.png",
-    flip: true,
+    position: { left: "36%", bottom: "26%" },
+    pose: "lie",
+    flip: false,
   },
   movie: {
     minMs: 5 * UNIT,
     maxMs: 15 * UNIT,
     weight: 2,
-    position: { left: "54%", bottom: "12%" },
-    sprite: "assets/images/mouse_side.png",
+    position: { left: "68%", bottom: "38%" },
+    pose: "sit",
     flip: false,
   },
 };
 
+const WALK_FRAME_MS = 180; // choppy on purpose — reads as retro, not smooth
+const WALK_MS = 2400;      // must match the CSS transition duration
+
 let nudgedNext = null;
 let currentActivity = null;
 let currentTimer = null;
+let walkTimer = null;
+let walkInterval = null;
 
 const mouseEl = document.getElementById("mouse");
 
+function setPose(poseName, flip) {
+  const s = SPRITES[poseName];
+  mouseEl.style.backgroundImage = `url("assets/images/${s.file}")`;
+  mouseEl.style.height = `${STANDING_PCT * (s.h / STANDING_ART_H)}%`;
+  mouseEl.style.aspectRatio = `${s.w} / ${s.h}`;
+  mouseEl.style.transform = flip ? "scaleX(-1)" : "scaleX(1)";
+}
+
 function pickRandomActivity() {
   const names = Object.keys(ACTIVITIES);
-  const totalWeight = names.reduce((sum, name) => sum + ACTIVITIES[name].weight, 0);
-  let roll = Math.random() * totalWeight;
+  const total = names.reduce((sum, n) => sum + ACTIVITIES[n].weight, 0);
+  let roll = Math.random() * total;
   for (const name of names) {
     roll -= ACTIVITIES[name].weight;
     if (roll <= 0) return name;
@@ -61,25 +89,58 @@ function pickNextActivity() {
   return pickRandomActivity();
 }
 
-function randomDuration(activity) {
-  const { minMs, maxMs } = ACTIVITIES[activity];
+function randomDuration(name) {
+  const { minMs, maxMs } = ACTIVITIES[name];
   return minMs + Math.random() * (maxMs - minMs);
 }
 
-function goToActivity(name) {
-  currentActivity = name;
+// Alternating two frames is how 8-bit walk cycles worked; with only a
+// stride frame and a standing frame available, that is a genuine cycle.
+function startWalking(facingLeft) {
+  let stride = true;
+  setPose("walk", !facingLeft);
+  walkInterval = setInterval(() => {
+    stride = !stride;
+    setPose(stride ? "walk" : "side", !facingLeft);
+  }, WALK_FRAME_MS);
+}
+
+function stopWalking() {
+  clearInterval(walkInterval);
+  walkInterval = null;
+}
+
+function settleInto(name) {
   const activity = ACTIVITIES[name];
+  stopWalking();
+  setPose(activity.pose, activity.flip);
+
+  const duration = randomDuration(name);
+  currentTimer = setTimeout(() => goToActivity(pickNextActivity()), duration);
+}
+
+function goToActivity(name) {
+  const activity = ACTIVITIES[name];
+  const fromLeft = parseFloat(mouseEl.style.left) || 0;
+  const toLeft = parseFloat(activity.position.left);
+  const facingLeft = toLeft < fromLeft;
+
+  clearTimeout(currentTimer);
+  clearTimeout(walkTimer);
+
+  const isFirstPlacement = currentActivity === null;
+  currentActivity = name;
 
   mouseEl.style.left = activity.position.left;
   mouseEl.style.bottom = activity.position.bottom;
-  mouseEl.style.backgroundImage = `url("${activity.sprite}")`;
-  mouseEl.style.transform = activity.flip ? "scaleX(-1)" : "scaleX(1)";
 
-  const duration = randomDuration(name);
-  clearTimeout(currentTimer);
-  currentTimer = setTimeout(() => {
-    goToActivity(pickNextActivity());
-  }, duration);
+  if (isFirstPlacement) {
+    settleInto(name);
+    return;
+  }
+
+  startWalking(facingLeft);
+  walkTimer = setTimeout(() => settleInto(name), WALK_MS);
 }
 
 function nudge(activity) {
