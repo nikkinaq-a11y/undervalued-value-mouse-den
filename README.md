@@ -49,9 +49,16 @@ other.
 17. `tools/pose-spec.md` — the spec new pose art has to meet to enter the pipeline
 18. `/assets/audio` — ambient sound (fire crackle, room tone), not yet used
 
+**Sound**
+
+19. `assets/audio/cozy-coffee.mp3` — "Cozy Coffee Music" by **andriih**, quiet
+    room tone, looping. Downloaded from Pixabay (filename retains their
+    `artist-title-id` pattern); **confirm the exact source page and licence
+    before submitting** so the credit here is right.
+
 **Type**
 
-19. `assets/fonts/PixelatedElegance.ttf` — *Pixelated Elegance*, the interface
+20. `assets/fonts/PixelatedElegance.ttf` — *Pixelated Elegance*, the interface
     typeface. **Public domain (CC0 1.0)**, from
     [FontSpace](https://www.fontspace.com/pixelated-elegance-font-f126145).
     Full licence text and source note ship alongside it in `assets/fonts/`.
@@ -64,8 +71,29 @@ typeface listed above, which is public domain.
 
 ```
 python3 -m http.server 8731      # then open localhost:8731
-python3 tools/build_assets.py    # rebuild assets from the originals (needs Pillow, numpy)
 ```
+
+That is all it needs — the site is plain HTML, CSS and JS with no build step and
+no dependencies. Everything it loads is in this repo.
+
+`tools/build_assets.py` regenerates the images from the original art, which lives
+*one directory above this repo* and is deliberately not committed (it is ~25 MB
+of source PNGs). Cloning this repo gets you a working site but not the ability to
+re-run that script.
+
+## Putting it online
+
+It is a static site, so GitHub Pages serves it as-is:
+
+1. Create an empty repository on github.com (no README, no .gitignore).
+2. `git remote add origin https://github.com/<username>/undervalued-value-mouse-den.git`
+3. `git push -u origin main`
+4. On github.com: **Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)`**
+5. It appears at `https://<username>.github.io/undervalued-value-mouse-den/`
+
+**Before sharing it**, set `TEST_MODE = false` at the top of `script.js`. While it
+is `true` the mouse changes activity every few seconds so transitions can be
+watched; the real pacing is 2–15 minutes, which is the whole point of the piece.
 
 ## Status
 

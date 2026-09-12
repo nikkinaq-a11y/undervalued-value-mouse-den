@@ -40,14 +40,17 @@ on its own timer, walks between them, the fireplace flickers on two real frames,
 sits dark until the mouse watches a movie, and the room dims to its painted lights-off
 state while it does.
 
-**Not done: the GitHub repo.** Everything is committed locally only. `gh` CLI is not
-installed on this machine, so the remote was never created. To finish Part 1: create the
-repo on github.com, then:
+**Not done: the GitHub repo.** Everything is committed locally. `gh` is still not
+installed and no credentials are available here, so the remote has to be created by hand
+— see "Putting it online" in the README for the full sequence including GitHub Pages.
 
-```
-git remote add origin https://github.com/<username>/undervalued-value-mouse-den.git
-git push -u origin main
-```
+The repo *is* verified self-contained: a fresh `git clone` into an empty directory serves
+and renders correctly with the font, all art and the audio, nothing missing. Re-run that
+check (clone to a temp dir, `python3 -m http.server`, load it) after adding assets.
+
+**The source art is not committed** — ~25 MB of original PNGs one directory up. A clone
+can run the site but cannot re-run `tools/build_assets.py`. Worth deciding before final
+submission whether the originals belong in the repo too.
 
 ## Running it
 
@@ -450,6 +453,19 @@ through `pendingFrom`, since it is out on the floor rather than at any activity.
 the walk when `currentActivity` already matches the destination, and after a
 wander that value is stale, so the mouse teleported into the scene instead of
 walking back to it.
+
+## Sound
+
+One quiet looping track at volume 0.16. Browsers refuse to start audio before the
+visitor has touched the page, so the first `play()` is *expected* to fail: it
+retries on the first pointer or key event anywhere, and until then the Music
+button honestly reads as off rather than claiming to be on. The button is kept
+out of the activity `<nav>` — that group is what the mouse is doing; this is the
+room's own sound and it is the visitor's to switch off.
+
+The file is 4.7 MB at 256 kbps, which dominates the repo. `afconvert` can halve
+it (`-f mp4f -d aac -b 128000`, ~2.4 MB) if load time ever matters; there is no
+MP3 encoder on this machine, so that would mean switching the element to `.m4a`.
 
 ## The interface
 
