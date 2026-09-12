@@ -76,10 +76,15 @@ python3 -m http.server 8731      # then open localhost:8731
 That is all it needs — the site is plain HTML, CSS and JS with no build step and
 no dependencies. Everything it loads is in this repo.
 
-`tools/build_assets.py` regenerates the images from the original art, which lives
-*one directory above this repo* and is deliberately not committed (it is ~25 MB
-of source PNGs). Cloning this repo gets you a working site but not the ability to
-re-run that script.
+To rebuild the images from the original art:
+
+```
+python3 tools/build_assets.py    # needs Pillow and numpy
+```
+
+The originals live in `content/art/` **in this repo**, so a clone can regenerate
+everything — and that rebuild is verified to reproduce `assets/images/` byte for
+byte. See `content/README.md`.
 
 ## Putting it online
 

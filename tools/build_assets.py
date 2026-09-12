@@ -40,10 +40,11 @@ def extract(path, tol=34):
     return out.crop(out.split()[-1].getbbox())
 
 
-# Originals live one level above the repo; built assets land inside it.
+# Originals live in the repo under content/art, so a clone can rebuild every
+# asset from scratch. Built images land in assets/images.
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-SRC = os.path.dirname(REPO)
+SRC = os.path.join(REPO, "content", "art")
 OUT = os.path.join(REPO, "assets", "images")
 
 ART_W, ART_H = 384, 216          # the room's art-pixel grid
@@ -62,16 +63,16 @@ DIM = 0.55
 # complete frames rather than composited over the room -- and because they are
 # the same room, cross-fading to one reads as the mouse appearing, not as a cut.
 SCENES = {
-    "scene_fire": ["Mouse Fire Feed 1.png",   # standing at the hearth with a log
-                   "Mouse Fire Feed 2.png",   # setting it into the fire
-                   "Mouse Fire Sit 1.png"],   # sitting back to watch it catch
-    "scene_cocoa": ["Mouse Mug 1.png",        # mug held at the chest
-                    "Mouse Mug 2.png"],       # raised for a sip, steam and all
+    "scene_fire": ["scene-fire-1.png",   # standing at the hearth with a log
+                   "scene-fire-2.png",   # setting it into the fire
+                   "scene-fire-3.png"],   # sitting back to watch it catch
+    "scene_cocoa": ["scene-cocoa-1.png",        # mug held at the chest
+                    "scene-cocoa-2.png"],       # raised for a sip, steam and all
     # The movie pair. Frame 1 is registered to the lit room and frame 2 to the
     # lights-off room, so the fade between them is the lamps going down with the
     # mouse already sitting there -- the only fade in the piece.
-    "scene_couch": ["Mouse on Couch - Lights on.png",
-                    "Mouse on Couch - Lights Off.png"],
+    "scene_couch": ["scene-couch-1.png",
+                    "scene-couch-2.png"],
 }
 
 # The television, while a movie is on. Both painted dark-room frames show the
@@ -97,10 +98,10 @@ MOVIE_FLICKER = [                           # (dx, dy, brightness)
     (0, -2, 0.94),
 ]
 
-ROOM_LIT   = "Mouse Den - New angle.png"          # lights on, TV on, fire "A"
-ROOM_DARK  = "Mouse Den - Lights Off - TV On.jpg" # lights off, TV on
-FIRE_B     = "Fireplace1.jpg"                     # second flame, registered crop
-TV_OFF     = "Mouse Den - TV Off.png"             # TV dark, registered crop
+ROOM_LIT   = "room-lit.png"          # lights on, TV on, fire "A"
+ROOM_DARK  = "room-dark.jpg" # lights off, TV on
+FIRE_B     = "fire-frame-b.jpg"                     # second flame, registered crop
+TV_OFF     = "tv-off.png"             # TV dark, registered crop
 
 # Poses may be declared two ways:
 #   (file, old_w, old_h)  -- dimensions the previous build tuned by hand, given
@@ -113,11 +114,11 @@ TV_OFF     = "Mouse Den - TV Off.png"             # TV dark, registered crop
 #                            nothing to measure by hand.
 OLD_H = 82
 POSES = {
-    "front": ("Mouse Gen3a.png", 49, 82),
-    "side":  ("Mouse Gen3b.png", 52, 82),
-    "back":  ("Mouse Gen 3c.png", 44, 82),
-    "walk":  ("ChatGPT Image Sep 11, 2026, 04_48_49 PM (1).png", 67, 78),
-    "lie":   ("ChatGPT Image Sep 11, 2026, 04_48_49 PM (3).png", 70, 42),
+    "front": ("pose-front.png", 49, 82),
+    "side":  ("pose-side.png", 52, 82),
+    "back":  ("pose-back.png", 44, 82),
+    "walk":  ("pose-walk.png", 67, 78),
+    "lie":   ("pose-lie.png", 70, 42),
 }
 
 def s(name):

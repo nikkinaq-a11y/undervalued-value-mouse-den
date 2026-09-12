@@ -1,12 +1,18 @@
 // Cozy Mouse Den — activity state machine
-// The mouse cycles between activities at its own pace, walking between them.
-// A visitor can "nudge" what it does next by clicking a zone, but never
-// interrupts whatever it is already doing.
+// The mouse moves on to something else every 5–15 minutes, on its own. The
+// buttons prompt that change early rather than seizing control: the mouse goes
+// where it is asked, stays for an ordinary stint, and then carries on choosing
+// for itself.
 
-// TEST_MODE shrinks the time unit from minutes to seconds so transitions
-// are visible while building. Set to false for the real idle pacing.
-const TEST_MODE = true;
+// TEST_MODE shrinks the time unit from minutes to seconds so transitions are
+// visible while building. Leave it false for the real pacing.
+const TEST_MODE = false;
 const UNIT = TEST_MODE ? 2 * 1000 : 60 * 1000;
+
+// Every activity lasts the same 5–15 minutes, so nothing reads as a short stop
+// on the way to something else.
+const STINT_MIN = 5 * UNIT;
+const STINT_MAX = 15 * UNIT;
 
 // The art grid every asset is authored on. Sprite art dimensions are given in
 // these same units, so a pose's on-screen size is just its art height over the
@@ -79,8 +85,6 @@ const LANES = {
 
 const ACTIVITIES = {
   fire: {
-    minMs: 2 * UNIT,
-    maxMs: 2 * UNIT,
     weight: 3,
     // art (147, 119) — exactly where `scene_fire_1` paints the mouse standing
     rest: { left: "38.281%", bottom: "44.907%" },
@@ -89,8 +93,6 @@ const ACTIVITIES = {
     flip: false,
   },
   read: {
-    minMs: 5 * UNIT,
-    maxMs: 15 * UNIT,
     weight: 2,
     rest: { left: "46.875%", bottom: "26.1%" },
     exits: { front: "46.875%" },
@@ -98,8 +100,6 @@ const ACTIVITIES = {
     flip: false,
   },
   movie: {
-    minMs: 5 * UNIT,
-    maxMs: 15 * UNIT,
     weight: 2,
     // art (256, 129) — where `scene_couch_1` paints it sitting
     rest: { left: "66.667%", bottom: "40.278%" },
@@ -257,6 +257,7 @@ let turnTimer = null;
 let walkStride = true;
 let depthInterval = null;
 let pendingFrom = null;
+let resumeMoving = false;
 let wanderAt = null;
 let wanderPrev = null;
 let facingLeftNow = false;
@@ -461,6 +462,13 @@ function setMode(next) {
     if (mode === "wander") return startWander();
     if (mode === "chill") return goToActivity(CHILL_RESTS_AT);
     if (SCENES[mode]) return playScene(mode);
+
+    // A stint that ran its course sends the mouse somewhere new; a button
+    // pressed to cancel one leaves it where it is, and the clock restarts.
+    if (resumeMoving) {
+      resumeMoving = false;
+      return goToActivity(pickNextActivity());
+    }
     if (currentActivity) return settleInto(currentActivity);
     goToActivity(pickRandomActivity());
   };
@@ -476,8 +484,11 @@ function setMode(next) {
   }
 }
 
+// Never the activity it is already doing: the whole point of the 5–15 minute
+// clock is that the mouse *moves* when it runs out, and drawing the same one
+// again would leave it sitting in the same spot for half an hour.
 function pickRandomActivity() {
-  const names = Object.keys(ACTIVITIES);
+  const names = Object.keys(ACTIVITIES).filter((n) => n !== currentActivity);
   const total = names.reduce((sum, n) => sum + ACTIVITIES[n].weight, 0);
   let roll = Math.random() * total;
   for (const name of names) {
@@ -496,9 +507,8 @@ function pickNextActivity() {
   return pickRandomActivity();
 }
 
-function randomDuration(name) {
-  const { minMs, maxMs } = ACTIVITIES[name];
-  return minMs + Math.random() * (maxMs - minMs);
+function randomDuration() {
+  return STINT_MIN + Math.random() * (STINT_MAX - STINT_MIN);
 }
 
 // Alternating two frames is how 8-bit walk cycles worked; with only a
@@ -533,12 +543,20 @@ function settleInto(name) {
     setPose(activity.pose, activity.flip);
   }
 
-  // Held modes stop here: the mouse stays where it was asked to be until the
-  // visitor lets it go back to its own routine.
-  if (mode !== "idle") return;
+  // The clock runs the same whether the mouse picked this itself or was asked
+  // to: a prompt buys an activity, not a permanent posting.
+  currentTimer = setTimeout(endStint, randomDuration());
+}
 
-  const duration = randomDuration(name);
-  currentTimer = setTimeout(() => goToActivity(pickNextActivity()), duration);
+// A stint is over. If the visitor had asked for this one, that request is spent
+// now — the button releases and the mouse goes back to choosing for itself.
+function endStint() {
+  if (mode === "idle") {
+    goToActivity(pickNextActivity());
+    return;
+  }
+  resumeMoving = true;
+  setMode(mode);   // next === mode, so this releases to idle
 }
 
 // Walks one leg at a time, setting the CSS duration per leg and turning to face
@@ -763,6 +781,10 @@ function startWander() {
       sceneTimer = setTimeout(wanderStep, WANDER_PAUSE_MIN);
     });
   }, TURN_MS);
+
+  // Roaming is an activity like any other, so it gets an ordinary stint and
+  // then the mouse settles into something.
+  currentTimer = setTimeout(endStint, randomDuration());
 }
 
 // --- Room tone ---------------------------------------------------------------

@@ -48,9 +48,14 @@ The repo *is* verified self-contained: a fresh `git clone` into an empty directo
 and renders correctly with the font, all art and the audio, nothing missing. Re-run that
 check (clone to a temp dir, `python3 -m http.server`, load it) after adding assets.
 
-**The source art is not committed** — ~25 MB of original PNGs one directory up. A clone
-can run the site but cannot re-run `tools/build_assets.py`. Worth deciding before final
-submission whether the originals belong in the repo too.
+**The source art is now committed**, under `content/art/`, renamed to match what each
+file produces. `tools/build_assets.py` reads from there rather than from outside the repo,
+so a clone can rebuild everything — verified byte-identical. `content/README.md` has the
+mapping.
+
+Note the originals had been moved into `Mouse Den Content/` outside the repo, which had
+quietly broken the build's old `../` paths; pointing it at `content/art/` fixes that for
+good.
 
 ## Running it
 
@@ -62,9 +67,20 @@ python3 -m http.server 8731      # from the repo root, then open localhost:8731
 refresh can silently keep running old code — this looked exactly like "the animation is
 broken." Always hard-reload (**Cmd+Shift+R**) after editing JS.
 
-`TEST_MODE = true` at the top of `script.js` shrinks the time unit from minutes to
-seconds (fire 4s, read/movie 10–30s) so transitions are observable. **Set it to `false`
-for real pacing** before submitting — that restores 2 min / 5–15 min.
+## Pacing
+
+The mouse moves on every **5–15 minutes**, the same stint for every activity
+(`STINT_MIN`/`STINT_MAX`). It never draws the activity it is already doing, so the clock
+running out always means it actually goes somewhere.
+
+**The buttons prompt rather than hold.** Pressing one sends the mouse there now; it stays
+for an ordinary stint and then carries on choosing for itself, releasing the button as it
+goes. Pressing the lit button cancels the request early and leaves the mouse where it is.
+This is what closes the "influence, not control" gap the piece is built on — an earlier
+version held the mouse in place indefinitely.
+
+`TEST_MODE` at the top of `script.js` shrinks the unit from minutes to seconds for
+development. Leave it `false`.
 
 ## The scale rule (most important thing to not re-derive)
 
