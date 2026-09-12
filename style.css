@@ -1,40 +1,243 @@
+/* Pixelated Elegance — public domain (CC0 1.0), fontspace.com. Its design grid
+   is 9 px to the em (cap height 7, x-height 6, descender 1), so it only renders
+   crisp at whole multiples of 9px: 18px here, which is 2x. Anything between
+   multiples puts the glyph edges between screen pixels and blurs them. */
+@font-face {
+  font-family: "Pixelated Elegance";
+  src: url("assets/fonts/PixelatedElegance.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* Matches the earth border baked into the artwork, so the page blends
+  /* Sampled from the earth border baked into the artwork, so the page blends
      into the frame instead of showing a hard edge. */
-  --den-brown-dark: #36160b;
+  --den-brown-dark: #401809;
+  --den-brown-night: #240d04;
+
+  /* The art grid. Every asset -- room, overlays, mouse -- is authored at this
+     resolution, so one art pixel is one art pixel everywhere on screen.
+     Percentages below are art-pixel measurements divided by these. */
+  --art-w: 384;
+  --art-h: 216;
+
+  /* One unit of the interface's own pixel grid, sized to sit near the room's
+     own art pixel on a typical screen. */
+  --px: 3px;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
+/* The ground colour lives on the root so it fills the whole canvas: put it on
+   `body` instead and it only covers the body box, which centring shrinks to
+   the width of the den. It follows the room's own lights, so the edge of the
+   frame never becomes visible when the den dims. */
+html {
+  background-color: var(--den-brown-dark);
+  transition: background-color 1.6s ease;
+}
+
+html.night {
+  background-color: var(--den-brown-night);
+}
+
+body {
   margin: 0;
   min-height: 100vh;
-  background-color: var(--den-brown-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
+  font: 18px/1 "Pixelated Elegance", ui-monospace, "Courier New", monospace;
+}
+
+/* Holds the room and its controls together so the pair stays centred. The
+   max-width matters: without it the button row sets the stage's width and
+   pushes itself off the side of a narrow screen instead of wrapping. */
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  /* An explicit width, not a max-width: a content-sized column takes the width
+     of its widest child, so the button row would set the stage's width and push
+     itself off the side of a narrow screen instead of wrapping inside it. */
+  width: 100%;
+  min-width: 0;
 }
 
 .den {
   position: relative;
-  /* Fit the whole room on screen — the floor (where the mouse stands)
-     is at the very bottom of the art, so it must never be cut off. */
-  width: min(900px, 80vw, calc(88vh * 1313 / 1198));
-  aspect-ratio: 1313 / 1198;
+  /* Bigger art pixels are the point, so let the room take the screen it can.
+     100% is the stage, which already sits inside the body's padding — using a
+     vw figure here instead overflows by the width of that padding. */
+  width: min(1440px, 100%, calc(82vh * 16 / 9));
+  aspect-ratio: 16 / 9;
   overflow: hidden;
 }
 
-.den-bg {
+/* Every layer is positioned in art-pixel percentages of the frame and drawn
+   with nearest-neighbour scaling, which is what keeps the pixels square.
+   Stacking order is explicit because one layer has to move: see .fire below. */
+.layer {
   position: absolute;
+  display: block;
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+}
+
+.room       { z-index: 1; }
+.tv-off     { z-index: 2; }
+.fire       { z-index: 3; }
+.zone       { z-index: 4; }
+.mouse      { z-index: 5; }
+.scene      { z-index: 6; }
+.scene-fade { z-index: 9; }
+.tv-movie   { z-index: 10; }
+
+/* The cocoa scenes carry the room's own flame, pixel for pixel -- 2 art pixels
+   of 3315 differ from the background. So the flicker can keep running over
+   them, which just means lifting it above the scene. The fire scenes repaint
+   the flame themselves, and there the overlay stays put and stops. */
+.den.scene-keeps-fire .fire {
+  z-index: 8;
+}
+
+/* `.layer` sets display, so the hidden attribute needs to win back. */
+.layer[hidden] {
+  display: none;
+}
+
+.room {
   inset: 0;
   width: 100%;
   height: 100%;
-  display: block;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
+}
+
+/* --- Registered overlay crops (art-pixel boxes on the 320x180 grid) --- */
+
+/* fire: x 93, y 77, 65x51 */
+.fire {
+  left: 24.2188%;
+  top: 35.6481%;
+  width: 16.9271%;
+  height: 23.6111%;
+}
+
+/* tv-off: x 118, y 63, 18x16 */
+.tv-off {
+  left: 30.7292%;
+  top: 29.1667%;
+  width: 4.6875%;
+  height: 7.4074%;
+}
+
+/* A scene is the whole room again, with the mouse painted into it, and it cuts
+   straight in. The mouse has already walked to where the scene shows it, so
+   there is nothing to dissolve between — a fade here would only blur the swap. */
+.scene {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+.den.scene-on .scene {
+  opacity: 1;
+}
+
+/* The one fade in the piece. Both frames are the same painting of the mouse
+   sitting on the couch, one with the lamps up and one with them down, so the
+   dissolve is only the light changing around a mouse that is already there. */
+.scene-fade {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+
+.den.night .scene-fade {
+  opacity: 1;
+}
+
+/* The television's glass alone, animating over the movie frame. It comes up on
+   the same curve as the lamps go down, so the picture is never brighter than
+   the room it is lighting. Art rect (118, 65) 17x12 of 384x216 — the lit glass
+   only, measured off the grid; anything larger drags the bezel with it. */
+.tv-movie {
+  left: 30.7292%;
+  top: 30.0926%;
+  width: 4.4271%;
+  height: 5.5556%;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+
+.den.night .tv-movie {
+  opacity: 1;
+}
+
+/* --- Controls ---
+   Deliberately quiet: the room should hold the eye, not the buttons. They sit
+   below the frame in the art's own browns so they read as part of the piece. */
+/* The activity group and the sound switch, spaced apart so they do not read as
+   one row of equal choices. */
+.controlbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px 26px;
+  max-width: 100%;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 100%;
+}
+
+/* The outline is drawn with four offset shadows rather than a border, which
+   leaves the corners notched out — square, stepped, and the same shape the room
+   is drawn in. A real border would round or antialias them. */
+.control {
+  --edge: rgba(255, 205, 150, 0.3);
+  padding: 9px 15px;
+  border: none;
+  border-radius: 0;
+  background: rgba(255, 190, 130, 0.05);
+  color: rgba(255, 216, 178, 0.72);
+  font: inherit;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    0 calc(-1 * var(--px)) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(-1 * var(--px)) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge);
+  transition: background-color 0.35s ease, color 0.35s ease,
+              box-shadow 0.35s ease;
+}
+
+.control:hover,
+.control:focus-visible {
+  --edge: rgba(255, 205, 150, 0.55);
+  background: rgba(255, 190, 130, 0.12);
+  color: rgba(255, 228, 198, 0.95);
+}
+
+.control[aria-pressed="true"] {
+  --edge: rgba(255, 190, 120, 0.85);
+  background: rgba(255, 170, 90, 0.2);
+  color: #ffeed9;
 }
 
 /* --- Interaction zones (soft nudge affordance, no hard demands) --- */
@@ -46,24 +249,75 @@ html, body {
   cursor: pointer;
 }
 
-.zone:hover {
+/* While a close-up covers the room, its zones are invisible -- so they must
+   stop being targets too. */
+.den.scene-on .zone {
+  pointer-events: none;
+}
+
+.zone:hover,
+.zone:focus-visible {
   outline: 2px dashed rgba(255, 220, 180, 0.4);
   outline-offset: 2px;
 }
 
-.zone-fireplace { left: 11%; top: 28%; width: 22%; height: 42%; }
-.zone-couch     { left: 62%; top: 43%; width: 26%; height: 28%; }
-.zone-bookshelf { left: 71%; top: 23%; width: 20%; height: 22%; }
+.zone-tv        { left: 30.0%; top: 28.0%; width: 6.5%; height: 10.0%; }
+.zone-fireplace { left: 24.4%; top: 38.0%; width: 13.8%; height: 20.0%; }
+.zone-rug       { left: 39.1%; top: 55.6%; width: 20.3%; height: 19.4%; }
+.zone-couch     { left: 59.4%; top: 42.2%; width: 15.6%; height: 20.0%; }
 
 /* --- Mouse sprite ---
    Height and aspect-ratio are set per pose from JS, since the poses have
    different art dimensions. Anchored by `bottom` so the character's ground
-   contact sits on the floor line regardless of how the scene is scaled. */
+   contact sits on the floor line regardless of how the scene is scaled, and
+   centred on `left` so a pose's width never shifts where it stands. */
 .mouse {
   position: absolute;
+  /* The character is scenery, not a target: without this it paints over the
+     zones and swallows clicks whenever it stands in front of one. */
+  pointer-events: none;
+  transform: translateX(-50%);
   background-size: 100% 100%;
   background-repeat: no-repeat;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
-  transition: left 2.4s linear, bottom 2.4s linear;
+  /* Duration is set per leg from JS — stepping off the couch is quick, crossing
+     the room is not — so only the property and curve live here. */
+  transition-property: left, bottom;
+  transition-timing-function: linear;
+  transition-duration: 0ms;
+}
+
+/* A scene carries its own painted mouse, so the walking one gets out of the way
+   the moment the scene lands -- no fade, or the two briefly overlap. */
+.den.scene-on .mouse {
+  visibility: hidden;
+}
+
+/* Five buttons need a little less room each before they will sit two rows deep
+   on a phone rather than three. */
+@media (max-width: 560px) {
+  :root {
+    --px: 2px;
+  }
+
+  .controlbar {
+    gap: 8px 14px;
+  }
+
+  .control {
+    padding: 7px 10px;
+    letter-spacing: 0;
+  }
+
+  .controls {
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* transition-duration is set inline per leg, so it has to be the property
+     itself that is switched off here or the inline value would win. */
+  .mouse { transition-property: none; }
+  .scene-fade, .tv-movie, html { transition-duration: 0.01ms; }
 }

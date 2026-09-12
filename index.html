@@ -7,15 +7,56 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="stage">
   <main class="den" id="den">
-    <img class="den-bg" src="assets/images/den_bg.png" alt="A cozy underground mouse den with a fireplace, couch, and bookshelf." />
+    <!-- The room is painted in two lighting states. The lit one is always
+         there; the dark one fades over it while the mouse watches a movie. -->
+    <img class="layer room" src="assets/images/den_bg.png"
+         alt="A cozy underground mouse den with a fireplace, a television, a couch, and a braided rug." />
 
+    <!-- Overlays sit on the lit room only: registered crops of the same
+         painting, so they drop back into place with no seam. -->
+    <img class="layer tv-off" id="tv-off" src="assets/images/tv_off.png" alt="" />
+    <img class="layer fire" id="fire" src="assets/images/fire_a.png" alt="" />
+
+    <button class="zone zone-tv" id="zone-tv" aria-pressed="false"
+            aria-label="Television"></button>
     <button class="zone zone-fireplace" id="zone-fire" aria-label="Fireplace"></button>
+    <button class="zone zone-rug" id="zone-read" aria-label="Rug"></button>
     <button class="zone zone-couch" id="zone-movie" aria-label="Couch"></button>
-    <button class="zone zone-bookshelf" id="zone-read" aria-label="Bookshelf"></button>
 
     <div class="mouse" id="mouse"></div>
+
+    <!-- Scenes are the same room with the mouse painted into it. `scene` cuts
+         straight in; `scene-fade` is the only thing in the piece that fades,
+         carrying the lamps down once the mouse is already on the couch. -->
+    <img class="layer scene" id="scene" alt="" />
+    <img class="layer scene-fade" id="scene-fade" alt="" />
+
+    <!-- Just the television's glass, so the picture can move while a movie is
+         on without another copy of the whole room. -->
+    <img class="layer tv-movie" id="tv-movie" alt="" />
   </main>
+
+  <div class="controlbar">
+  <nav class="controls" aria-label="What the mouse is doing">
+    <button type="button" class="control" data-mode="movie" aria-pressed="false">Movie</button>
+    <button type="button" class="control" data-mode="cocoa" aria-pressed="false">Cocoa</button>
+    <button type="button" class="control" data-mode="fire" aria-pressed="false">Feed fire</button>
+    <button type="button" class="control" data-mode="chill" aria-pressed="false">Chill</button>
+    <button type="button" class="control" data-mode="wander" aria-pressed="false">Wander</button>
+  </nav>
+
+  <!-- Kept out of the nav above: that group is what the mouse is doing, this is
+       just the room's own sound, and it is the visitor's to switch off. -->
+  <button type="button" class="control control-sound" id="sound" aria-pressed="false">
+    Music
+  </button>
+  </div>
+
+  <audio id="music" src="assets/audio/cozy-coffee.mp3" loop preload="auto"></audio>
+
+  </div>
 
   <script src="script.js"></script>
 </body>
