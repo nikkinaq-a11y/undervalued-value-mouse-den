@@ -55,10 +55,19 @@ python3 tools/cut_halloween.py     # source/ -> the cut-outs beside it
 python3 tools/build_assets.py      # cut-outs -> assets/images/decor_*.png
 ```
 
-Twenty pieces are cut out; the eight the room actually hangs are chosen in the
-`DECOR` table in `tools/build_assets.py`, which also sets each one's size and
-position in art pixels. The other twelve stay here as material — changing which
-decorations the room uses is an edit to that table, not new art.
+Twenty pieces are cut out; the ten the room actually hangs are listed in the
+`DECOR` table in `tools/build_assets.py` with their size and position. The other
+ten stay here as material.
+
+**That table is generated, not written.** `tools/read_placement.py` reads it back
+out of `reference/holiday-placement.png` — a screenshot of the room with the
+decorations arranged over it by hand — recovering each piece's position, size and
+which cut-out it is. Rearranging the room means moving things in that image and
+re-running the two scripts, not editing coordinates.
+
+Each piece is warmed and dimmed into the room's light on the way through, scaled
+by how bright the room actually is behind it, and given a soft contact shadow
+that travels inside its own image.
 
 They are also the one thing drawn **finer than the room**: `DECOR_SUPERSAMPLE`
 is 2, so each piece ships at twice the art grid and is displayed in the same box,
@@ -75,10 +84,13 @@ holiday mode off is byte-identical to before the decorations existed.
 
 ## `reference/`
 
-Two screenshots used to measure things that were being guessed wrong:
+Screenshots used to measure things that were being guessed wrong:
 
 - `tv-screen-rect.png` — which part of the television is the lit glass
 - `couch-stand-spot.png` — where the mouse should stand when it gets up
+- `holiday-placement.png` — where every holiday decoration goes. Unlike the other
+  two this one is *read by a script* rather than by eye, so it is a source file
+  in its own right: `tools/read_placement.py` turns it into the `DECOR` table.
 
 ## Not kept here
 

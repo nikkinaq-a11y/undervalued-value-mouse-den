@@ -43,34 +43,36 @@ other.
 14. `scene_couch_1..2.png` — the mouse settled on the couch, lamps up and lamps down
 15. `tv_movie_1..8.png` — the television's glass, animated while a movie is on
 
-**Holiday decorations (8 pieces x 2 lighting states = 16 sprites)**
+**Holiday decorations (10 pieces x 2 lighting states = 20 sprites)**
 
-Switched on by the **Activate holiday mode** button above the frame. Cut off their
-flat backdrops by `tools/cut_halloween.py`, then reduced onto the same 384x216 art
-grid as everything else, so a pumpkin is drawn in the same size pixel as the couch
-behind it.
+Switched on by the **Holiday mode** switch in the top right. Cut off their flat
+backdrops by `tools/cut_halloween.py`, then reduced onto the room's own art grid,
+warmed and dimmed into its firelight, and given a soft contact shadow.
 
-16. `decor_portrait_a/b/c.png` — three framed Halloween portraits: a ghost over the
-    television, and a bat and a witch flanking the picture the room already hangs
-17. `decor_hat.png` — a witch's hat on the coat hooks
-18. `decor_cauldron.png` — a cauldron on the floor by the woodpile
-19. `decor_pumpkin_a/b/c.png` — jack-o'-lanterns on the floor in the firelight, on the
-    hearth ledge, and on the coffee table
-20. `decor_*_dark.png` — the same eight at the room's measured 0.55 dim, so they go
+16. `decor_hat_1.png` — a witch's hat on the right-hand shelves
+17. `decor_portrait_1/2.png` — a ghost portrait beside the round window, a witch
+    portrait by the coat hooks
+18. `decor_cauldron_1.png` — a cauldron on the floor at the hearth
+19. `decor_pumpkin_1..6.png` — six jack-o'-lanterns: on the shelves, at the hearth,
+    on the coffee table, by the couch, and a pair out on the floor
+20. `decor_*_dark.png` — the same ten at the room's measured 0.55 dim, so they go
     down with the lamps instead of glowing against a dark room
 
 **Also**
 
 21. `tools/build_assets.py` — the pipeline that produces all of the above
 22. `tools/cut_halloween.py` — isolates the decoration art from its backdrops
-23. `tools/pose-spec.md` — the spec new pose art has to meet to enter the pipeline
+23. `tools/read_placement.py` — reads where the decorations go back out of
+    `content/reference/holiday-placement.png`, so the room is redecorated by
+    moving things around in a picture rather than by editing coordinates
+24. `tools/pose-spec.md` — the spec new pose art has to meet to enter the pipeline
 
 **Sound**
 
-24. The **Music** button opens a Spotify playlist in a new tab rather than playing
-    audio in the page, so the visitor keeps Spotify's own controls and the room
-    stays quiet unless they ask for it.
-25. `assets/audio/cozy-coffee.mp3` — "Cozy Coffee Music" by **andriih**, quiet room
+25. The **Music** link, in the top right beside the holiday switch, opens a
+    Spotify playlist in a new tab rather than playing audio in the page, so the
+    visitor keeps Spotify's own controls and the room stays quiet unless asked.
+26. `assets/audio/cozy-coffee.mp3` — "Cozy Coffee Music" by **andriih**, quiet room
     tone, looping. Downloaded from Pixabay (filename retains their
     `artist-title-id` pattern). **No longer loaded by the page** since the Music
     button became the playlist link; kept as a material. Confirm the exact source
@@ -78,7 +80,7 @@ behind it.
 
 **Type**
 
-26. `assets/fonts/PixelatedElegance.ttf` — *Pixelated Elegance*, the interface
+27. `assets/fonts/PixelatedElegance.ttf` — *Pixelated Elegance*, the interface
     typeface. **Public domain (CC0 1.0)**, from
     [FontSpace](https://www.fontspace.com/pixelated-elegance-font-f126145).
     Full licence text and source note ship alongside it in `assets/fonts/`.

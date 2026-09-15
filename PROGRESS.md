@@ -404,6 +404,10 @@ so turning the lights off automatically hides the lit-room overlays underneath i
 
 ## Decisions already made (don't redo these)
 
+- **The room's zones no longer outline on hover.** A dashed box drawn across the
+  painting on the way past reads as a seam in the art. `:focus-visible` keeps its
+  outline: without it a keyboard visitor cannot tell which zone they are on, and
+  unlike hover it only ever shows when someone is actually tabbing.
 - **CSS-filter fakery was tried and rejected** — filter-based fire flicker, a fake TV
   on/off layer, pulsing glows, window twinkles. All read as artificial over painted art.
   Everything animated now is a real painted frame. (The one derived asset, the dimmed
@@ -492,8 +496,11 @@ paused state — has been deleted from `script.js`.
 but no longer loaded**, so its 4.7 MB now costs nothing at load time. Delete it if
 it gets dropped from the materials list.
 
-The button is still kept out of the activity `<nav>`: that group is what the mouse
-is doing, this is the room's own sound.
+**It sits in the top-right corner beside the holiday switch**, not in the row
+under the frame: that row is what the mouse can be asked to do, and neither the
+playlist nor the decorations are. It wears the same switch chrome so the two read
+as a pair — but its knob never moves, because opening a tab is not an on/off
+state and a switch that animated would be claiming something it cannot know.
 
 ## Holiday mode
 
@@ -503,11 +510,69 @@ of them. Sitting it among them would read as a sixth activity. It changes nothin
 about what the mouse is doing or where it is — `setHoliday()` only toggles
 `.holiday` on the den and everything else is CSS.
 
-**Eight pieces**, listed with their size and position in `DECOR` in
-`tools/build_assets.py`: three framed portraits (a ghost over the television; a bat
-and a witch flanking the picture the room already hangs), a witch's hat on the coat
-hooks, a cauldron on the floor by the woodpile, and three jack-o'-lanterns — in the
-firelight, on the hearth ledge, and on the coffee table.
+**Ten pieces**, listed with their size and position in `DECOR` in
+`tools/build_assets.py`: a witch's hat and a jack-o'-lantern on the right-hand
+shelves, a ghost portrait beside the round window, a witch portrait by the coat
+hooks, a cauldron on the floor at the hearth, and five more jack-o'-lanterns
+about the floor and on the coffee table.
+
+### Placement is read back from a picture, not typed in
+
+**Do not hand-tune the numbers in `DECOR`.** They are produced by
+`tools/read_placement.py` from `content/reference/holiday-placement.png`, which
+is a screenshot of the room with the decorations dragged around over it in an
+image editor. To rearrange the room, move things in that image, save it back,
+run the script, and paste the table it prints:
+
+```
+python3 tools/read_placement.py     # placement image -> the DECOR table
+python3 tools/build_assets.py       # -> assets/images/decor_*.png + the CSS
+```
+
+Pieces may be moved, resized and duplicated freely in that image; the reader
+recovers position, size and which cut-out each one is. Scale is not locked to
+anything, so the same pumpkin can appear twice at two sizes, which is what the
+current arrangement does.
+
+How it works, because the obvious approach does not: matching the cut-outs
+against the room finds decorations everywhere, since the room's own warm texture
+correlates with a pumpkin about as well as a pumpkin does. What makes it precise
+is subtracting the clean room first and only accepting matches where the pixels
+actually changed. Two details that cost a pass each:
+
+- **Rank on correlation times coverage, not correlation alone.** A six-pixel
+  witch hat out-correlated the cauldron on a corner of it while covering barely
+  half of what had changed, and between them a hat and a ghost frame claimed the
+  cauldron's space and left it undetected entirely.
+- **Be generous about overlap.** Decorations get placed deliberately touching --
+  the pumpkin leaning on the cauldron shares half its box — and a tight overlap
+  threshold throws the second one away as a duplicate.
+
+Whatever changed but matches nothing is reported and skipped, which is what
+happens to the mouse and to the fireplace, since a screenshot catches whichever
+flame frame was up.
+
+### They are lit to match the room
+
+Straight cut-outs are print-bright and land in a room lit by one fire, so each
+piece is warmed and pulled down (`DECOR_WARM`, `DECOR_EXPOSURE`) and then scaled
+again by **how bright the room actually is behind it**, measured off the finished
+painting. That last part is what stops a pumpkin out on the dark floor being lit
+as though it were sitting on the hearth. It is normalised against the average
+across all the pieces, so it only redistributes the exposure rather than
+brightening or darkening the set as a whole, and clamped, since close to the fire
+the room is bright enough to wash a piece out.
+
+Each piece also carries **its own contact shadow** — a soft ellipse centred on its
+base line, so the top half hides behind the piece and only what falls past its
+feet is seen. The shadow lives inside the image rather than in a second element,
+so the CSS box just runs `shadow_h` deeper than the piece; the top stays put, and
+moving a piece never means re-deriving where its shadow goes.
+
+**Gotcha:** the alpha cannot be binarised any more. The piece wants hard pixel
+edges, but binarising the whole channel turns the shadow into a solid slab with a
+stepped rim — so the piece's alpha is thresholded and the shadow's gradient is
+kept.
 
 ### Where the art came from, and the problem with it
 
@@ -589,15 +654,14 @@ copies as well — which is what the existing pose code was already doing, and w
 
 The set sits at **z-index 11, above everything** including the painted scenes. The
 scenes are the same den *without* decorations, so anything lower would have them
-vanish the moment the mouse sat down. That buys two constraints on placement:
+vanish the moment the mouse sat down. That buys two constraints on placement,
+which apply just as much when rearranging things in the placement image:
 
 1. **Keep floor pieces out of art x 135–160 in the hearth band.** That is where
    both the sprite and the painted fire scenes put the mouse, and a decoration
    drawn above would cut across it.
 2. **Keep off the walking lanes** — front at art y 152, back at y 120, both
-   spanning roughly art x 155–250 — or the mouse walks through the decoration. A
-   pumpkin first placed beside the lamp table had to move for this; it is on the
-   hearth ledge now.
+   spanning roughly art x 155–250 — or the mouse walks through the decoration.
 
 ### The selector fix this needed
 

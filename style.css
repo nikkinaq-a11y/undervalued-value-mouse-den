@@ -230,14 +230,19 @@ body {
   opacity: 1;
 }
 
+.decor .decor-hat-1 { left: 67.8385%; top: 25.4630%; width: 3.9062%; height: 7.8704%; }
+.decor .decor-portrait-1 { left: 54.6875%; top: 26.8519%; width: 2.0833%; height: 6.4815%; }
+.decor .decor-portrait-2 { left: 38.6719%; top: 29.6296%; width: 2.3438%; height: 6.0185%; }
+.decor .decor-pumpkin-1 { left: 66.4062%; top: 33.7963%; width: 2.6042%; height: 5.0926%; }
+.decor .decor-cauldron-1 { left: 25.1302%; top: 49.5370%; width: 5.9896%; height: 12.0370%; }
+.decor .decor-pumpkin-2 { left: 27.4740%; top: 55.0926%; width: 4.4271%; height: 8.7963%; }
+.decor .decor-pumpkin-3 { left: 48.9583%; top: 58.7963%; width: 3.1250%; height: 6.0185%; }
+.decor .decor-pumpkin-4 { left: 69.6615%; top: 59.2593%; width: 3.9062%; height: 7.8704%; }
+.decor .decor-pumpkin-5 { left: 31.2500%; top: 66.2037%; width: 6.7708%; height: 12.5000%; }
+.decor .decor-pumpkin-6 { left: 36.1979%; top: 72.2222%; width: 4.1667%; height: 8.3333%; }
+
 .decor .decor-cauldron  { left: 25.3906%; top: 57.8704%; width: 4.4271%; height: 7.4074%; }
-.decor .decor-pumpkin-a { left: 31.6406%; top: 58.7963%; width: 3.3854%; height: 5.5556%; }
-.decor .decor-pumpkin-b { left: 29.2969%; top: 52.3148%; width: 1.8229%; height: 3.2407%; }
-.decor .decor-pumpkin-c { left: 50.3906%; top: 57.4074%; width: 2.3438%; height: 3.7037%; }
 .decor .decor-hat       { left: 41.5365%; top: 28.7037%; width: 3.3854%; height: 5.5556%; }
-.decor .decor-portrait-a { left: 31.6406%; top: 19.4444%; width: 1.8229%; height: 5.5556%; }
-.decor .decor-portrait-b { left: 57.9427%; top: 26.3889%; width: 2.3438%; height: 5.5556%; }
-.decor .decor-portrait-c { left: 52.9948%; top: 27.3148%; width: 1.8229%; height: 4.1667%; }
 
 /* --- Controls ---
    Deliberately quiet: the room should hold the eye, not the buttons. They sit
@@ -272,12 +277,21 @@ body {
   top: 14px;
   right: 14px;
   z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Right-aligned so the pair grows leftwards off the corner and the switch
+     nearest the edge stays put as labels change length. */
+  justify-content: flex-end;
 }
 
 .holiday-toggle {
   --edge: rgba(255, 205, 150, 0.32);
   display: flex;
   align-items: center;
+  /* Music is an anchor, so the underline has to be turned off explicitly or it
+     is the only one of the pair that carries one. */
+  text-decoration: none;
   gap: 12px;
   padding: 8px 12px;
   border: none;
@@ -343,15 +357,24 @@ body {
   background: #ffb765;
 }
 
+/* Music opens a tab rather than switching anything on, so its switch has no
+   on state to show and never moves. It is there to make the two read as one
+   pair of controls; the knob sits over to the right like an arrow out. */
+.holiday-switch.is-link .holiday-knob {
+  left: calc(var(--px) * 8);
+  background: rgba(255, 216, 178, 0.55);
+}
+
+.holiday-toggle:hover .holiday-switch.is-link .holiday-knob,
+.holiday-toggle:focus-visible .holiday-switch.is-link .holiday-knob {
+  background: #ffb765;
+}
+
 /* The outline is drawn with four offset shadows rather than a border, which
    leaves the corners notched out — square, stepped, and the same shape the room
    is drawn in. A real border would round or antialias them. */
 .control {
   --edge: rgba(255, 205, 150, 0.3);
-  /* The sound control is an anchor rather than a button -- it opens the playlist
-     in its own tab -- so the shared look has to sit on a link as well. */
-  display: inline-block;
-  text-decoration: none;
   padding: 9px 15px;
   border: none;
   border-radius: 0;
@@ -398,7 +421,10 @@ body {
   pointer-events: none;
 }
 
-.zone:hover,
+/* No hover outline: the room is a painting and a dashed box drawn across it on
+   the way past reads as a seam in the art. Keyboard focus still shows, because
+   without it a keyboard visitor cannot tell which zone they are on at all --
+   and unlike hover, it only ever appears when someone is actually tabbing. */
 .zone:focus-visible {
   outline: 2px dashed rgba(255, 220, 180, 0.4);
   outline-offset: 2px;

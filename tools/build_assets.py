@@ -299,49 +299,126 @@ DECOR_PALETTE_COLORS = 128
 # back to 1 to put them exactly on the room's grid again.
 DECOR_SUPERSAMPLE = 2
 
+# The stock art is bright print colour and lands in a room lit by one fire, so
+# it is warmed and pulled down before it goes in. These are multipliers on the
+# lit piece: the tint is the colour of the light, the exposure is how much of it
+# there is. Enough to sit the pieces in the room's light without draining them.
+DECOR_WARM = (1.00, 0.86, 0.68)
+DECOR_EXPOSURE = 0.88
+
+# The room is lit by one fire, so it falls off hard into the corners. Each piece
+# is additionally scaled by how bright the room actually is behind it, measured
+# off the painting, so a pumpkin out on the dark floor is not lit as though it
+# were on the hearth. Normalised against the average across all the pieces, so
+# this only ever redistributes the exposure above -- it never globally brightens
+# or darkens the set. Clamped, because the fire is bright enough up close to
+# wash a piece out entirely.
+DECOR_LIGHT_RANGE = (0.72, 1.18)
+
+# A soft ellipse under each piece, so nothing looks pasted on. Height is taken
+# from the piece's own width rather than a fixed figure, so a wide pumpkin gets
+# a wide shadow and a narrow frame a narrow one. The alpha is deliberately low --
+# the room is dim and its own shadows are soft.
+SHADOW_RGB = (26, 12, 5)
+SHADOW_ALPHA = 96
+SHADOW_DEPTH = 0.17        # of the piece's width
+
 # (source file, height in art px, centre x, bottom y) -- placed on the art grid,
 # so these numbers are the same ones the CSS below is printed from. Sizes and
 # positions here are in ROOM art pixels and do not change with the supersample.
+#
+# Read off content/reference/holiday-placement.png by tools/read_placement.py:
+# the decorations were arranged by hand over a screenshot of the room, and that
+# script matched each one back to its cut-out, position and size together. To
+# rearrange them, move things about in that image again and re-run it.
 DECOR = {
-    # Floor pieces keep clear of art x 135-160 in the hearth band: that is where
-    # both the sprite and the painted fire scenes put the mouse, and decorations
-    # are drawn above everything so they would cut across it.
-    "cauldron":   ("cauldron.png",          16, 106, 141),
-    "pumpkin_a":  ("pumpkin-grin.png",      12, 128, 139),
-    "pumpkin_b":  ("pumpkin-wink.png",       7, 116, 120),  # on the hearth ledge
-    "pumpkin_c":  ("pumpkin-smirk.png",      8, 198, 132),  # on the coffee table
-    "hat":        ("witch-hat.png",         12, 166,  74),  # on the coat hooks
-    "portrait_a": ("portrait-ghost.png",    12, 125,  54),  # over the television
-    # Flanking the picture the room already hangs at art x 212-220, so the
-    # holiday frames read as more of the same wall rather than a new idea.
-    "portrait_b": ("portrait-witch.png",    12, 227,  69),
-    "portrait_c": ("portrait-bat.png",       9, 207,  68),
+    "hat_1":      ("witch-hat.png",       14, 268,  69),
+    "portrait_1": ("portrait-ghost.png",  13, 214,  71),
+    "portrait_2": ("portrait-witch.png",  11, 153,  75),
+    "pumpkin_1":  ("pumpkin-grin.png",     9, 260,  82),
+    "cauldron_1": ("cauldron.png",        22, 108, 129),
+    "pumpkin_2":  ("pumpkin-grin.png",    16, 114, 135),
+    "pumpkin_3":  ("pumpkin-smirk.png",   11, 194, 138),
+    "pumpkin_4":  ("pumpkin-wink.png",    14, 275, 142),
+    "pumpkin_5":  ("pumpkin-smirk.png",   23, 133, 166),
+    "pumpkin_6":  ("pumpkin-wink.png",    15, 147, 171),
 }
 
 DECOR_SRC = os.path.join(REPO, "content", "art", "halloween")
 
 # Art-grid size is what the CSS box is measured in; pixel size is that times the
-# supersample, which is what actually gets written to disk.
+# supersample, which is what actually gets written to disk. Each piece is built
+# on a canvas taller than the piece itself, with the extra rows at the bottom
+# holding the shadow -- so the shadow travels inside the image rather than
+# needing a second element to carry it.
+decor_lut = [min(255, round(v * DIM)) for v in range(256)]
+
+# How bright the room is behind each piece, straight off the finished painting.
+room_lum = np.asarray(qframes["lit"].convert("L"), float)
+
+
+def light_behind(art_w, art_h, cx, by):
+    x0 = max(0, int(cx - art_w / 2))
+    x1 = min(ART_W, int(cx + art_w / 2) + 1)
+    y0 = max(0, int(by - art_h))
+    y1 = min(ART_H, int(by) + 1)
+    return float(room_lum[y0:y1, x0:x1].mean())
+
+
+lights = {}
+for name, (fname, art_h, cx, by) in DECOR.items():
+    art = Image.open(os.path.join(DECOR_SRC, fname)).convert("RGBA")
+    art = art.crop(art.split()[-1].getbbox())
+    aw = max(1, round(art_h * art.size[0] / art.size[1]))
+    lights[name] = light_behind(aw, art_h, cx, by)
+mean_light = sum(lights.values()) / len(lights)
+
 decor = {}
 decor_art_size = {}
 for name, (fname, art_h, cx, by) in DECOR.items():
     art = Image.open(os.path.join(DECOR_SRC, fname)).convert("RGBA")
     art = art.crop(art.split()[-1].getbbox())
     art_w = max(1, round(art_h * art.size[0] / art.size[1]))
-    decor_art_size[name] = (art_w, art_h)
-    decor[name] = art.resize((art_w * DECOR_SUPERSAMPLE,
-                              art_h * DECOR_SUPERSAMPLE), Image.BOX)
+    shadow_h = max(1, round(art_w * SHADOW_DEPTH))
+    decor_art_size[name] = (art_w, art_h, shadow_h)
+
+    piece = art.resize((art_w * DECOR_SUPERSAMPLE, art_h * DECOR_SUPERSAMPLE),
+                       Image.BOX)
+    # Warm and dim the art itself; the shadow is already its own colour.
+    lo, hi = DECOR_LIGHT_RANGE
+    local = min(hi, max(lo, lights[name] / mean_light))
+    chans = []
+    for ch, band in enumerate(piece.split()[:3]):
+        gain = DECOR_WARM[ch] * DECOR_EXPOSURE * local
+        chans.append(band.point([min(255, round(v * gain)) for v in range(256)]))
+    piece = Image.merge("RGBA", (*chans, piece.split()[-1]))
+
+    pw = art_w * DECOR_SUPERSAMPLE
+    ph = (art_h + shadow_h) * DECOR_SUPERSAMPLE
+    canvas = Image.new("RGBA", (pw, ph), SHADOW_RGB + (0,))
+
+    # An ellipse centred on the base line, so its top half hides behind the
+    # piece and only the part past the feet is ever seen.
+    yy, xx = np.mgrid[0:ph, 0:pw]
+    cxp = (pw - 1) / 2
+    cyp = art_h * DECOR_SUPERSAMPLE
+    rx = max(1.0, pw * 0.48)
+    ry = max(1.0, shadow_h * DECOR_SUPERSAMPLE)
+    d = ((xx - cxp) / rx) ** 2 + ((yy - cyp) / ry) ** 2
+    falloff = np.clip(1.0 - d, 0, 1) ** 1.4
+    shade = (falloff * SHADOW_ALPHA).astype(np.uint8)
+    canvas.putalpha(Image.fromarray(shade))
+    canvas.alpha_composite(piece, (0, 0))
+    decor[name] = canvas
+
 
 # One palette across the whole set, sampled from the pieces themselves -- and
 # from their dimmed copies as well. Sampling only the lit ones leaves the palette
 # with no dark entries, so quantising a dimmed piece against it snaps every
 # pixel back up to the nearest bright colour and the lamps-down variant comes out
 # no darker than the lit one.
-decor_lut = [min(255, round(v * DIM)) for v in range(256)]
-
-
 def flatten(p):
-    flat = Image.new("RGB", p.size, (0, 0, 0))
+    flat = Image.new("RGB", p.size, SHADOW_RGB)
     flat.paste(p, (0, 0), p)
     return flat
 
@@ -352,7 +429,7 @@ decor_dim = {k: f.point(decor_lut * 3) for k, f in decor_flat.items()}
 samples = list(decor_flat.values()) + list(decor_dim.values())
 strip_w = sum(p.size[0] for p in samples)
 strip_h = max(p.size[1] for p in samples)
-dstrip = Image.new("RGB", (strip_w, strip_h), (0, 0, 0))
+dstrip = Image.new("RGB", (strip_w, strip_h), SHADOW_RGB)
 x = 0
 for p in samples:
     dstrip.paste(p, (x, 0))
@@ -365,14 +442,20 @@ decor_palette = dstrip.quantize(colors=DECOR_PALETTE_COLORS,
 # decorations take the same factor rather than glowing against a dark room.
 decor_boxes = {}
 for name, p in decor.items():
-    alpha = p.split()[-1].point(lambda v: 255 if v > 128 else 0)
+    # The piece keeps hard pixel edges; the shadow keeps its gradient. Binarising
+    # the whole alpha would turn the shadow into a solid slab with a stepped rim.
+    alpha = p.split()[-1]
+    solid = alpha.point(lambda v: 255 if v > SHADOW_ALPHA else 0)
+    graded = Image.composite(Image.new("L", p.size, 255), alpha, solid)
     for suffix, img in (("", decor_flat[name]), ("_dark", decor_dim[name])):
         q = img.quantize(palette=decor_palette, dither=Image.NONE).convert("RGBA")
-        q.putalpha(alpha)
+        q.putalpha(graded)
         q.save(os.path.join(OUT, f"decor_{name}{suffix}.png"))
     _, art_h, cx, by = DECOR[name]
-    art_w, _ = decor_art_size[name]
-    decor_boxes[name] = (cx - art_w / 2, by - art_h, art_w, art_h)
+    art_w, _, shadow_h = decor_art_size[name]
+    # Top stays at the piece's own top; the box just runs deeper to hold the
+    # shadow, so moving a piece never means re-deriving where its shadow goes.
+    decor_boxes[name] = (cx - art_w / 2, by - art_h, art_w, art_h + shadow_h)
 print(f"decor: {len(decor)} pieces, palette {DECOR_PALETTE_COLORS}, "
       f"supersample x{DECOR_SUPERSAMPLE}")
 

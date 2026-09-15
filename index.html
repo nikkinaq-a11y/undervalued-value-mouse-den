@@ -13,13 +13,23 @@
        rebuilt under their existing filenames, so without a stamp a returning
        visitor keeps the previous build of them. The room's own art is not
        stamped: it is only ever added to, never rewritten. -->
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <!-- Pinned to the corner of the window, out of the stage entirely: the row
        under the frame is what the mouse can be asked to do, and this is a
        setting of the room rather than one of them. A switch says so on sight. -->
   <div class="holidaybar">
+    <!-- The room's own sound, not one of the mouse's activities either, so it
+         keeps the switch company up here rather than sitting in that row. It is
+         a real link -- it opens the playlist in its own tab, so the visitor gets
+         Spotify's controls, and it middle-clicks like any other link. -->
+    <a class="holiday-toggle" id="sound" target="_blank" rel="noopener"
+       href="https://open.spotify.com/playlist/7fh2Bqm3z34GNX3tsIfmSl">
+      <span class="holiday-text">Music</span>
+      <span class="holiday-switch is-link"><span class="holiday-knob"></span></span>
+    </a>
+
     <button type="button" class="holiday-toggle" id="holiday" aria-pressed="false">
       <span class="holiday-text">Holiday mode</span>
       <span class="holiday-switch"><span class="holiday-knob"></span></span>
@@ -62,24 +72,28 @@
          with the lamps so they do not glow against a dark room. -->
     <div class="decor-set" id="decor" aria-hidden="true">
       <div class="decor decor-lit">
-        <img class="decor-portrait-a" src="assets/images/decor_portrait_a.png?v=2" alt="" />
-        <img class="decor-portrait-b" src="assets/images/decor_portrait_b.png?v=2" alt="" />
-        <img class="decor-portrait-c" src="assets/images/decor_portrait_c.png?v=2" alt="" />
-        <img class="decor-hat" src="assets/images/decor_hat.png?v=2" alt="" />
-        <img class="decor-cauldron" src="assets/images/decor_cauldron.png?v=2" alt="" />
-        <img class="decor-pumpkin-a" src="assets/images/decor_pumpkin_a.png?v=2" alt="" />
-        <img class="decor-pumpkin-b" src="assets/images/decor_pumpkin_b.png?v=2" alt="" />
-        <img class="decor-pumpkin-c" src="assets/images/decor_pumpkin_c.png?v=2" alt="" />
+        <img class="decor-hat-1" src="assets/images/decor_hat_1.png?v=3" alt="" />
+        <img class="decor-portrait-1" src="assets/images/decor_portrait_1.png?v=3" alt="" />
+        <img class="decor-portrait-2" src="assets/images/decor_portrait_2.png?v=3" alt="" />
+        <img class="decor-pumpkin-1" src="assets/images/decor_pumpkin_1.png?v=3" alt="" />
+        <img class="decor-cauldron-1" src="assets/images/decor_cauldron_1.png?v=3" alt="" />
+        <img class="decor-pumpkin-2" src="assets/images/decor_pumpkin_2.png?v=3" alt="" />
+        <img class="decor-pumpkin-3" src="assets/images/decor_pumpkin_3.png?v=3" alt="" />
+        <img class="decor-pumpkin-4" src="assets/images/decor_pumpkin_4.png?v=3" alt="" />
+        <img class="decor-pumpkin-5" src="assets/images/decor_pumpkin_5.png?v=3" alt="" />
+        <img class="decor-pumpkin-6" src="assets/images/decor_pumpkin_6.png?v=3" alt="" />
       </div>
       <div class="decor decor-dark">
-        <img class="decor-portrait-a" src="assets/images/decor_portrait_a_dark.png?v=2" alt="" />
-        <img class="decor-portrait-b" src="assets/images/decor_portrait_b_dark.png?v=2" alt="" />
-        <img class="decor-portrait-c" src="assets/images/decor_portrait_c_dark.png?v=2" alt="" />
-        <img class="decor-hat" src="assets/images/decor_hat_dark.png?v=2" alt="" />
-        <img class="decor-cauldron" src="assets/images/decor_cauldron_dark.png?v=2" alt="" />
-        <img class="decor-pumpkin-a" src="assets/images/decor_pumpkin_a_dark.png?v=2" alt="" />
-        <img class="decor-pumpkin-b" src="assets/images/decor_pumpkin_b_dark.png?v=2" alt="" />
-        <img class="decor-pumpkin-c" src="assets/images/decor_pumpkin_c_dark.png?v=2" alt="" />
+        <img class="decor-hat-1" src="assets/images/decor_hat_1_dark.png?v=3" alt="" />
+        <img class="decor-portrait-1" src="assets/images/decor_portrait_1_dark.png?v=3" alt="" />
+        <img class="decor-portrait-2" src="assets/images/decor_portrait_2_dark.png?v=3" alt="" />
+        <img class="decor-pumpkin-1" src="assets/images/decor_pumpkin_1_dark.png?v=3" alt="" />
+        <img class="decor-cauldron-1" src="assets/images/decor_cauldron_1_dark.png?v=3" alt="" />
+        <img class="decor-pumpkin-2" src="assets/images/decor_pumpkin_2_dark.png?v=3" alt="" />
+        <img class="decor-pumpkin-3" src="assets/images/decor_pumpkin_3_dark.png?v=3" alt="" />
+        <img class="decor-pumpkin-4" src="assets/images/decor_pumpkin_4_dark.png?v=3" alt="" />
+        <img class="decor-pumpkin-5" src="assets/images/decor_pumpkin_5_dark.png?v=3" alt="" />
+        <img class="decor-pumpkin-6" src="assets/images/decor_pumpkin_6_dark.png?v=3" alt="" />
       </div>
     </div>
   </main>
@@ -93,16 +107,10 @@
     <button type="button" class="control" data-mode="wander" aria-pressed="false">Wander</button>
   </nav>
 
-  <!-- Kept out of the nav above: that group is what the mouse is doing, this is
-       just the room's own sound. It opens the playlist in its own tab rather
-       than playing in the page, so the visitor keeps Spotify's own controls --
-       and a real link, so it middle-clicks and cmd-clicks like any other. -->
-  <a class="control control-sound" id="sound" target="_blank" rel="noopener"
-     href="https://open.spotify.com/playlist/7fh2Bqm3z34GNX3tsIfmSl">Music</a>
   </div>
 
   </div>
 
-  <script src="script.js?v=2"></script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>
