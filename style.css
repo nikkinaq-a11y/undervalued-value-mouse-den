@@ -188,22 +188,19 @@ body {
    den without them, so anything lower would have the decorations vanish the
    moment the mouse sat down. Their boxes are art-pixel measurements printed by
    tools/build_assets.py — paste them, don't recompute them. */
+/* The switch is a switch: the decorations are simply there or not, with no fade
+   either way. Nothing in the room dissolves except the lamps, and a half-present
+   pumpkin on the way in read as a glitch rather than as a transition. */
 .decor-set {
   position: absolute;
   inset: 0;
   z-index: 11;
   pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  /* Visibility is held until the fade finishes so the set cannot be tabbed to
-     or read out while it is on its way out. */
-  transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+  display: none;
 }
 
 .den.holiday .decor-set {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.45s ease;
+  display: block;
 }
 
 .decor {
@@ -500,5 +497,6 @@ body {
      itself that is switched off here or the inline value would win. */
   .mouse { transition-property: none; }
   .scene-fade, .tv-movie, html { transition-duration: 0.01ms; }
-  .decor-set, .decor-dark, .holiday-knob { transition-duration: 0.01ms; }
+  /* .decor-set is not listed: it switches with display now, not a transition. */
+  .decor-dark, .holiday-knob { transition-duration: 0.01ms; }
 }

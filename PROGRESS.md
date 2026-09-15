@@ -504,11 +504,17 @@ state and a switch that animated would be claiming something it cannot know.
 
 ## Holiday mode
 
-A toggle **above the frame**, deliberately not in the row below it: those five
-buttons are things the mouse can be asked to do, and dressing the room is not one
-of them. Sitting it among them would read as a sixth activity. It changes nothing
-about what the mouse is doing or where it is — `setHoliday()` only toggles
-`.holiday` on the den and everything else is CSS.
+A switch in the **top right of the window**, deliberately not in the row below the
+frame: those five buttons are things the mouse can be asked to do, and dressing
+the room is not one of them. Sitting it among them would read as a sixth
+activity. It changes nothing about what the mouse is doing or where it is —
+`setHoliday()` only toggles `.holiday` on the den and everything else is CSS.
+
+**The decorations do not fade in or out.** The set switches on `display`, so it is
+simply there or not. Nothing in this room dissolves except the lamps, and a
+half-transparent pumpkin on the way in read as a glitch rather than a transition.
+The knob's own slide is kept: it steps across in four frames rather than gliding,
+which is motion in the control, not in the room.
 
 **Ten pieces**, listed with their size and position in `DECOR` in
 `tools/build_assets.py`: a witch's hat and a jack-o'-lantern on the right-hand
@@ -603,21 +609,27 @@ the art better besides.
 
 ### They are drawn finer than the room, on purpose
 
-`DECOR_SUPERSAMPLE = 2` in the build: each piece ships at **twice** the art grid
-and is displayed in the same CSS box, so its pixels are half the size of the
-room's. Everything else in the project is exactly one art pixel per art pixel.
+`DECOR_SUPERSAMPLE = 1.5` in the build: each piece ships at **one and a half
+times** the art grid and is displayed in the same CSS box, so its pixels are two
+thirds the size of the room's. Everything else in the project is exactly one art
+pixel per art pixel.
+
+The figure was picked by rendering 2, 1.5 and 1 side by side at the same
+on-screen size: **2** reads as too smooth against the room, **1** throws the
+small pumpkin's face away and the cauldron's legs with it, **1.5** is chunky
+while everything still reads. It does not have to be a whole number — the piece
+is drawn at whatever size this gives and scaled to its box by the browser
+regardless — so this is a dial, not a set of three choices.
 
 This is a deliberate break from "The scale rule" above, asked for and worth
 keeping the reason for: the decorations are **found art**, detailed line work
-drawn at print resolution rather than for this grid, and at 1x a jack-o'-lantern's
-face collapsed into an orange blob and the cauldron lost its legs. The room's own
-art survives 1x because it was painted to be reduced.
+drawn at print resolution rather than for this grid. The room's own art survives
+1x because it was painted to be reduced; this was not.
 
-Two is as far as it goes — they still read as pixel art, just a finer weave than
-the wall behind them. **Sizes and positions in `DECOR` stay in room art pixels**
-and do not change with the supersample, so the CSS boxes are identical either
-way; only the file written to disk gets bigger. Set it back to 1 to put them back
-on the room's grid exactly.
+**Sizes and positions in `DECOR` stay in room art pixels** and do not change with
+the supersample, so the CSS boxes are identical whatever it is set to; only the
+file written to disk changes size. Set it to 1 to put them back on the room's
+grid exactly.
 
 ### They do not share the room's palette
 

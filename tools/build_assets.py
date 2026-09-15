@@ -294,10 +294,15 @@ DECOR_PALETTE_COLORS = 128
 #
 # That is a deliberate break from "The scale rule", asked for on purpose: the
 # stock art is detailed line work rather than something drawn for this grid, and
-# at 1x a pumpkin's face collapsed into a blob. Two is as far as it goes -- they
-# still read as pixel art, just a finer weave than the wall behind them. Set it
-# back to 1 to put them exactly on the room's grid again.
-DECOR_SUPERSAMPLE = 2
+# at 1 a pumpkin's face collapses into a blob and the cauldron loses its legs.
+# Set it back to 1 to put them exactly on the room's grid again.
+#
+# 1.5 was picked by rendering 2, 1.5 and 1 side by side at the same on-screen
+# size: 2 reads as too smooth against the room, 1 throws the small pumpkin's
+# face away entirely, and 1.5 is chunky while everything still reads. It need
+# not be a whole number -- the piece is drawn at whatever size this gives and
+# scaled to its box by the browser either way.
+DECOR_SUPERSAMPLE = 1.5
 
 # The stock art is bright print colour and lands in a room lit by one fire, so
 # it is warmed and pulled down before it goes in. These are multipliers on the
@@ -382,8 +387,11 @@ for name, (fname, art_h, cx, by) in DECOR.items():
     shadow_h = max(1, round(art_w * SHADOW_DEPTH))
     decor_art_size[name] = (art_w, art_h, shadow_h)
 
-    piece = art.resize((art_w * DECOR_SUPERSAMPLE, art_h * DECOR_SUPERSAMPLE),
-                       Image.BOX)
+    # Rounded, since the supersample is not necessarily a whole number.
+    def ss(n):
+        return max(1, round(n * DECOR_SUPERSAMPLE))
+
+    piece = art.resize((ss(art_w), ss(art_h)), Image.BOX)
     # Warm and dim the art itself; the shadow is already its own colour.
     lo, hi = DECOR_LIGHT_RANGE
     local = min(hi, max(lo, lights[name] / mean_light))
@@ -393,17 +401,17 @@ for name, (fname, art_h, cx, by) in DECOR.items():
         chans.append(band.point([min(255, round(v * gain)) for v in range(256)]))
     piece = Image.merge("RGBA", (*chans, piece.split()[-1]))
 
-    pw = art_w * DECOR_SUPERSAMPLE
-    ph = (art_h + shadow_h) * DECOR_SUPERSAMPLE
+    pw = ss(art_w)
+    ph = ss(art_h + shadow_h)
     canvas = Image.new("RGBA", (pw, ph), SHADOW_RGB + (0,))
 
     # An ellipse centred on the base line, so its top half hides behind the
     # piece and only the part past the feet is ever seen.
     yy, xx = np.mgrid[0:ph, 0:pw]
     cxp = (pw - 1) / 2
-    cyp = art_h * DECOR_SUPERSAMPLE
+    cyp = ss(art_h)
     rx = max(1.0, pw * 0.48)
-    ry = max(1.0, shadow_h * DECOR_SUPERSAMPLE)
+    ry = max(1.0, ss(shadow_h))
     d = ((xx - cxp) / rx) ** 2 + ((yy - cyp) / ry) ** 2
     falloff = np.clip(1.0 - d, 0, 1) ** 1.4
     shade = (falloff * SHADOW_ALPHA).astype(np.uint8)
