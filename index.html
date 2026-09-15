@@ -4,17 +4,26 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cozy Mouse Den</title>
-  <link rel="stylesheet" href="style.css" />
+  <!-- The ?v= is a cache buster. GitHub Pages serves these with a ten minute
+       cache, so a visitor who has been here before can end up holding an old
+       script.js against a new index.html -- which is not a broken-looking page
+       but a dead one, since the old script throws on markup that has moved on
+       and never gets as far as placing the mouse. Bump the number whenever
+       script.js or style.css changes. -->
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
-  <div class="stage">
-  <!-- Above the frame, away from the activity row below it: those buttons are
-       what the mouse is doing, this dresses the room and leaves the mouse be. -->
+  <!-- Pinned to the corner of the window, out of the stage entirely: the row
+       under the frame is what the mouse can be asked to do, and this is a
+       setting of the room rather than one of them. A switch says so on sight. -->
   <div class="holidaybar">
-    <button type="button" class="control control-holiday" id="holiday"
-            aria-pressed="false">Activate holiday mode</button>
+    <button type="button" class="holiday-toggle" id="holiday" aria-pressed="false">
+      <span class="holiday-text">Holiday mode</span>
+      <span class="holiday-switch"><span class="holiday-knob"></span></span>
+    </button>
   </div>
 
+  <div class="stage">
   <main class="den" id="den">
     <!-- The room is painted in two lighting states. The lit one is always
          there; the dark one fades over it while the mouse watches a movie. -->
@@ -91,6 +100,6 @@
 
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
 </body>
 </html>

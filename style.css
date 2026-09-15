@@ -261,13 +261,86 @@ body {
   max-width: 100%;
 }
 
-/* Above the frame rather than in the row below it: dressing the room is not one
-   of the things the mouse can be asked to do, and sitting it among those five
-   would read as a sixth activity. */
+/* --- The holiday switch ---
+   Pinned to the window's top right rather than sitting in the stage: the row
+   under the frame is what the mouse can be asked to do, and this is a setting of
+   the room. It lands on the dark vignette in the corner of the art, which is why
+   it can sit over the frame without fighting it. Above the decorations' own
+   z-index 11, since they are in the same stacking context. */
 .holidaybar {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+}
+
+.holiday-toggle {
+  --edge: rgba(255, 205, 150, 0.32);
   display: flex;
-  justify-content: center;
-  max-width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 0;
+  /* Dark enough to hold the label wherever the corner art happens to be. */
+  background: rgba(30, 14, 6, 0.62);
+  color: rgba(255, 216, 178, 0.72);
+  font: inherit;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  /* Same four-shadow outline as the buttons below the frame, so the corners stay
+     notched and square rather than rounding the way a border would. */
+  box-shadow:
+    0 calc(-1 * var(--px)) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(-1 * var(--px)) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge);
+  transition: background-color 0.35s ease, color 0.35s ease,
+              box-shadow 0.35s ease;
+}
+
+.holiday-toggle:hover,
+.holiday-toggle:focus-visible {
+  --edge: rgba(255, 205, 150, 0.6);
+  color: rgba(255, 228, 198, 0.95);
+}
+
+.holiday-toggle[aria-pressed="true"] {
+  --edge: rgba(255, 190, 120, 0.85);
+  color: #ffeed9;
+}
+
+/* The track is sized in whole units of the interface's own pixel grid, so it
+   steps down with everything else on a narrow screen instead of blurring. */
+.holiday-switch {
+  position: relative;
+  flex: none;
+  width: calc(var(--px) * 14);
+  height: calc(var(--px) * 7);
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 calc(-1 * var(--px)) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(-1 * var(--px)) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge);
+}
+
+/* Four steps rather than a glide: the knob lands on whole pixels the whole way
+   across, which is the same reason the walk cycle is choppy on purpose. */
+.holiday-knob {
+  position: absolute;
+  top: var(--px);
+  left: var(--px);
+  width: calc(var(--px) * 5);
+  height: calc(var(--px) * 5);
+  background: rgba(255, 216, 178, 0.55);
+  transition: left 0.2s steps(4), background-color 0.2s steps(4);
+}
+
+.holiday-toggle[aria-pressed="true"] .holiday-knob {
+  left: calc(var(--px) * 8);
+  background: #ffb765;
 }
 
 /* The outline is drawn with four offset shadows rather than a border, which
@@ -383,6 +456,17 @@ body {
   .controls {
     gap: 8px;
   }
+
+  .holidaybar {
+    top: 8px;
+    right: 8px;
+  }
+
+  .holiday-toggle {
+    gap: 8px;
+    padding: 6px 9px;
+    letter-spacing: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -390,4 +474,5 @@ body {
      itself that is switched off here or the inline value would win. */
   .mouse { transition-property: none; }
   .scene-fade, .tv-movie, html { transition-duration: 0.01ms; }
+  .decor-set, .decor-dark, .holiday-knob { transition-duration: 0.01ms; }
 }
