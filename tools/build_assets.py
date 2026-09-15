@@ -272,6 +272,91 @@ for i, (dx, dy, gain) in enumerate(MOVIE_FLICKER, 1):
         os.path.join(OUT, f"tv_movie_{i}.png"))
 print(f"tv_movie: {len(MOVIE_FLICKER)} frames from {MOVIE_SCREEN_ART}")
 
+# --- Holiday decorations ------------------------------------------------------
+# Stock art, cut off its flat backdrop by tools/cut_halloween.py, reduced onto
+# the room's own art grid so a pumpkin is drawn in the same size pixel as the
+# couch behind it. That shared grid is what makes them read as part of the
+# painting rather than stickers on top of it -- see "The scale rule".
+#
+# They are the one thing in the build that does NOT share the room's palette.
+# The reason the room and the mouse must share one is cross-frame colour flicker
+# during animation, and these never animate; meanwhile the room's 224 colours are
+# browns and warm greens with no purple or saturated orange in them, so forcing a
+# cauldron through it turns it to mud. They get their own palette instead, built
+# across all of them together so the set is consistent with itself, and the
+# room's own output is left untouched -- holiday mode off must be byte-identical
+# to before it existed.
+DECOR_PALETTE_COLORS = 96
+
+# (source file, height in art px, centre x, bottom y) -- placed on the art grid,
+# so these numbers are the same ones the CSS below is printed from.
+DECOR = {
+    # Floor pieces keep clear of art x 135-160 in the hearth band: that is where
+    # both the sprite and the painted fire scenes put the mouse, and decorations
+    # are drawn above everything so they would cut across it.
+    "cauldron":   ("cauldron.png",        16, 106, 141),
+    "pumpkin_a":  ("jackolanterns-1.png", 12, 128, 139),
+    "pumpkin_b":  ("jackolanterns-5.png",  7, 116, 120),   # on the hearth ledge
+    "pumpkin_c":  ("jackolanterns-3.png",  8, 198, 132),   # on the coffee table
+    "hat":        ("witch-hat.png",       12, 166,  74),   # on the coat hooks
+    "portrait_a": ("portraits-2.png",     12, 125,  54),   # over the television
+    # Flanking the picture the room already hangs at art x 212-220, so the
+    # holiday frames read as more of the same wall rather than a new idea.
+    "portrait_b": ("portraits-5.png",     12, 227,  69),
+    "portrait_c": ("portraits-1.png",      9, 207,  68),
+}
+
+DECOR_SRC = os.path.join(REPO, "content", "art", "halloween")
+
+decor = {}
+for name, (fname, art_h, cx, by) in DECOR.items():
+    art = Image.open(os.path.join(DECOR_SRC, fname)).convert("RGBA")
+    art = art.crop(art.split()[-1].getbbox())
+    w = max(1, round(art_h * art.size[0] / art.size[1]))
+    decor[name] = art.resize((w, art_h), Image.BOX)
+
+# One palette across the whole set, sampled from the pieces themselves -- and
+# from their dimmed copies as well. Sampling only the lit ones leaves the palette
+# with no dark entries, so quantising a dimmed piece against it snaps every
+# pixel back up to the nearest bright colour and the lamps-down variant comes out
+# no darker than the lit one.
+decor_lut = [min(255, round(v * DIM)) for v in range(256)]
+
+
+def flatten(p):
+    flat = Image.new("RGB", p.size, (0, 0, 0))
+    flat.paste(p, (0, 0), p)
+    return flat
+
+
+decor_flat = {k: flatten(p) for k, p in decor.items()}
+decor_dim = {k: f.point(decor_lut * 3) for k, f in decor_flat.items()}
+
+samples = list(decor_flat.values()) + list(decor_dim.values())
+strip_w = sum(p.size[0] for p in samples)
+strip_h = max(p.size[1] for p in samples)
+dstrip = Image.new("RGB", (strip_w, strip_h), (0, 0, 0))
+x = 0
+for p in samples:
+    dstrip.paste(p, (x, 0))
+    x += p.size[0]
+
+decor_palette = dstrip.quantize(colors=DECOR_PALETTE_COLORS,
+                                method=Image.MEDIANCUT, dither=Image.NONE)
+
+# The lamps-down room is the lit render times 0.55 (measured, see DIM), so the
+# decorations take the same factor rather than glowing against a dark room.
+decor_boxes = {}
+for name, p in decor.items():
+    alpha = p.split()[-1].point(lambda v: 255 if v > 128 else 0)
+    for suffix, img in (("", decor_flat[name]), ("_dark", decor_dim[name])):
+        q = img.quantize(palette=decor_palette, dither=Image.NONE).convert("RGBA")
+        q.putalpha(alpha)
+        q.save(os.path.join(OUT, f"decor_{name}{suffix}.png"))
+    _, art_h, cx, by = DECOR[name]
+    decor_boxes[name] = (cx - p.size[0] / 2, by - art_h, p.size[0], art_h)
+print(f"decor: {len(decor)} pieces, palette {DECOR_PALETTE_COLORS}")
+
 print(f"grid {ART_W}x{ART_H}, palette {PALETTE_COLORS}, pose repeat x{repeat}")
 print(f"mouse is {STANDING_ART_H / ART_H * 100:.2f}% of frame height\n")
 
@@ -289,3 +374,9 @@ print(f"const STANDING_ART_H = {STANDING_ART_H};")
 for name, size in sizes.items():
     pad = " " * (5 - len(name))
     print(f'  {name}:{pad} {{ file: "mouse_{name}",{pad} w: {size[0]}, h: {size[1]} }},')
+
+print("\n--- style.css: holiday decorations ---")
+for name, (x0, y0, w, h) in decor_boxes.items():
+    print(f".decor-{name.replace('_', '-')} "
+          f"{{ left: {x0 / ART_W * 100:.4f}%; top: {y0 / ART_H * 100:.4f}%; "
+          f"width: {w / ART_W * 100:.4f}%; height: {h / ART_H * 100:.4f}%; }}")

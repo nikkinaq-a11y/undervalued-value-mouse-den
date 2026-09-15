@@ -1,6 +1,6 @@
 # Cozy Mouse Den — Progress & Handoff
 
-Working notes for resuming this project in a fresh session. Last updated 2026-09-12.
+Working notes for resuming this project in a fresh session. Last updated 2026-09-15.
 
 ## The assignment
 
@@ -351,9 +351,11 @@ keeping: **one camera, one grid, one palette.**
 
 ## The controls
 
-Three buttons under the frame — Movie, Cocoa, Feed fire — plus the clickable
-zones in the room itself. Buttons are a radio group: clicking the active one
-lets the mouse go back to its own routine.
+Five buttons under the frame — Movie, Cocoa, Feed fire, Chill, Wander — plus the
+clickable zones in the room itself. Buttons are a radio group: clicking the active
+one lets the mouse go back to its own routine. The Music link sits beside them but
+outside the group, and the holiday toggle sits **above** the frame; neither is a
+mode (see "Holiday mode").
 
 - **Movie** — see the sequence above. Clicking the television in the room is an
   alias for this button, so the two controls cannot disagree.
@@ -472,16 +474,114 @@ walking back to it.
 
 ## Sound
 
-One quiet looping track at volume 0.16. Browsers refuse to start audio before the
-visitor has touched the page, so the first `play()` is *expected* to fail: it
-retries on the first pointer or key event anywhere, and until then the Music
-button honestly reads as off rather than claiming to be on. The button is kept
-out of the activity `<nav>` — that group is what the mouse is doing; this is the
-room's own sound and it is the visitor's to switch off.
+**The Music button is now a link to a Spotify playlist**, opened in its own tab:
+`https://open.spotify.com/playlist/7fh2Bqm3z34GNX3tsIfmSl`. It is a real `<a>`
+rather than a button, so it middle-clicks and cmd-clicks like any other link, and
+it wears the `.control` look — which is why `.control` now sets `display:
+inline-block` and `text-decoration: none`.
 
-The file is 4.7 MB at 256 kbps, which dominates the repo. `afconvert` can halve
-it (`-f mp4f -d aac -b 128000`, ~2.4 MB) if load time ever matters; there is no
-MP3 encoder on this machine, so that would mean switching the element to `.m4a`.
+**Playback is Spotify's to start, not ours.** Opening the tab is all a page can
+do; whether it plays on arrival depends on the visitor's own Spotify session. There
+is no way to force it from here, so "it didn't start playing by itself" is not a
+bug in this repo.
+
+The in-page audio is gone: no `<audio>` element, and the whole room-tone block —
+volume, the autoplay-unlock retry on the first gesture, `aria-pressed` reflecting
+paused state — has been deleted from `script.js`.
+`assets/audio/cozy-coffee.mp3` is **still on disk and still listed as a material
+but no longer loaded**, so its 4.7 MB now costs nothing at load time. Delete it if
+it gets dropped from the materials list.
+
+The button is still kept out of the activity `<nav>`: that group is what the mouse
+is doing, this is the room's own sound.
+
+## Holiday mode
+
+A toggle **above the frame**, deliberately not in the row below it: those five
+buttons are things the mouse can be asked to do, and dressing the room is not one
+of them. Sitting it among them would read as a sixth activity. It changes nothing
+about what the mouse is doing or where it is — `setHoliday()` only toggles
+`.holiday` on the den and everything else is CSS.
+
+**Eight pieces**, listed with their size and position in `DECOR` in
+`tools/build_assets.py`: three framed portraits (a ghost over the television; a bat
+and a witch flanking the picture the room already hangs), a witch's hat on the coat
+hooks, a cauldron on the floor by the woodpile, and three jack-o'-lanterns — in the
+firelight, on the hearth ledge, and on the coffee table.
+
+### Where the art came from, and the problem with it
+
+`tools/cut_halloween.py` takes four stock sheets, flood-fills their flat backdrops
+away from the border, and splits what is left into separate objects by
+eight-connected labelling — **20 cut-outs, of which the room uses 8.** The other 12
+stay in `content/art/halloween/` as material; changing which decorations are up is
+an edit to the `DECOR` table, not new art.
+
+Two things the cutter has to do that are worth keeping: the jack-o'-lantern sheet
+carries a **"designed by freepik"** credit under the bottom row, which is cropped
+off before labelling (otherwise the lettering is read as a tenth pumpkin), and the
+cauldron is ringed by loose sparkles that are their own tiny islands, so only the
+largest object is kept.
+
+**The decorations are third-party art and three of the four sheets have no known
+creator or licence.** All three JPGs came off Pinterest, which is a re-host, not a
+source. The Attribution table in the top-level README has the details and what to
+do about it. This is the one outstanding thing that actually blocks submission —
+generating the decorations the same way the room was made would settle it and match
+the art better besides.
+
+### They do not share the room's palette
+
+The only asset in the build that doesn't. The reason that rule exists is colour
+flicker *between animation frames*, and decorations never animate; meanwhile the
+room's 224 colours are browns and warm greens with no purple or saturated orange in
+them, so forcing a cauldron through that palette turns it to mud. They get their
+own 96-colour palette, built across all eight together so the set is consistent
+with itself.
+
+**The room's own output is untouched** — verified: after adding all of this, every
+pre-existing file in `assets/images/` is byte-identical. Holiday mode off is the
+room exactly as it was.
+
+What they *do* share is the **art grid**, which is the thing that actually buys
+cohesion (see "The scale rule"): a pumpkin is drawn in the same size pixel as the
+couch behind it.
+
+### Two copies of every piece, because of the lamps
+
+`decor_*.png` and `decor_*_dark.png`, the second at the room's measured **0.55**
+dim — the same factor the mouse poses take. The markup holds both sets stacked
+(`.decor-lit` / `.decor-dark`); the dark one crossfades in on the same 1.6s curve as
+the lamps, so the decorations go down *with* the room instead of glowing on top of
+a dark painting.
+
+**Gotcha that cost a build:** the dark pass came out no darker than the lit one.
+The decoration palette was sampled from the lit pieces only, so it held no dark
+entries and quantising a dimmed piece against it snapped every pixel straight back
+up to the nearest bright colour. The palette has to be sampled from the dimmed
+copies as well — which is what the existing pose code was already doing, and why.
+
+### Layer order and the two placement rules
+
+The set sits at **z-index 11, above everything** including the painted scenes. The
+scenes are the same den *without* decorations, so anything lower would have them
+vanish the moment the mouse sat down. That buys two constraints on placement:
+
+1. **Keep floor pieces out of art x 135–160 in the hearth band.** That is where
+   both the sprite and the painted fire scenes put the mouse, and a decoration
+   drawn above would cut across it.
+2. **Keep off the walking lanes** — front at art y 152, back at y 120, both
+   spanning roughly art x 155–250 — or the mouse walks through the decoration. A
+   pumpkin first placed beside the lamp table had to move for this; it is on the
+   hearth ledge now.
+
+### The selector fix this needed
+
+`controlEls` was `document.querySelectorAll(".control")` and is now scoped to
+`".controls .control"`. The holiday toggle and the playlist link wear the same
+`.control` look but are not modes, and `setMode()` sets `aria-pressed` across
+everything in that list — unscoped, pressing any activity button would have
+silently cleared the holiday button's own state.
 
 ## The interface
 
@@ -541,6 +641,9 @@ drop them from `POSES`/`ROOM_DARK` in the build script.
   the width follows the source's own proportions.
 
 **Build work:**
+- **Settle the decoration art's licensing** — the one thing that actually blocks
+  submission now. Three of the four sheets have no known creator or licence; see
+  Attribution in the README and "Holiday mode" above.
 - Push to GitHub (Part 1 requirement)
 - Set `TEST_MODE = false` before submission
 - Finish the README materials list: real final inventory + attribution

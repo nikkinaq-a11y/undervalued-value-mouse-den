@@ -273,9 +273,12 @@ const tvZoneEl = document.getElementById("zone-tv");
 const sceneEl = document.getElementById("scene");
 const sceneFadeEl = document.getElementById("scene-fade");
 const tvMovieEl = document.getElementById("tv-movie");
-const musicEl = document.getElementById("music");
-const soundEl = document.getElementById("sound");
-const controlEls = Array.from(document.querySelectorAll(".control"));
+const holidayEl = document.getElementById("holiday");
+// Scoped to the activity group on purpose. The holiday toggle and the playlist
+// link wear the same .control look but are not modes, and setMode sets
+// aria-pressed across everything it finds here -- picking them up would clear
+// the holiday button's own state every time an activity button was pressed.
+const controlEls = Array.from(document.querySelectorAll(".controls .control"));
 
 function setPose(poseName, flip) {
   currentPose = poseName;
@@ -787,46 +790,18 @@ function startWander() {
   currentTimer = setTimeout(endStint, randomDuration());
 }
 
-// --- Room tone ---------------------------------------------------------------
-// Quiet enough to be the room rather than the point. Browsers will not let a
-// page start audio before the visitor has touched it, so the first attempt is
-// expected to fail: it tries again on the first click or key, and until then
-// the button honestly reads as off.
-const MUSIC_VOLUME = 0.16;
-
-let musicWanted = true;
-
-function reflectMusic() {
-  soundEl.setAttribute("aria-pressed", String(!musicEl.paused));
+// --- Holiday mode ------------------------------------------------------------
+// Dressing the room, not an activity: the decorations go up and come down
+// without touching what the mouse is doing or where it is. Everything else here
+// is CSS -- the set fades in, and its dimmed copy rides the lamps.
+function setHoliday(on) {
+  denEl.classList.toggle("holiday", on);
+  holidayEl.setAttribute("aria-pressed", String(on));
 }
 
-function tryPlayMusic() {
-  if (!musicWanted) return;
-  musicEl.volume = MUSIC_VOLUME;
-  musicEl.play().then(reflectMusic).catch(reflectMusic);
-}
-
-function toggleMusic() {
-  musicWanted = musicEl.paused;
-  if (musicWanted) tryPlayMusic();
-  else {
-    musicEl.pause();
-    reflectMusic();
-  }
-}
-
-soundEl.addEventListener("click", toggleMusic);
-musicEl.addEventListener("play", reflectMusic);
-musicEl.addEventListener("pause", reflectMusic);
-
-// One-shot: the first gesture anywhere is enough to satisfy the autoplay rule.
-function unlockMusic() {
-  if (musicEl.paused) tryPlayMusic();
-  document.removeEventListener("pointerdown", unlockMusic);
-  document.removeEventListener("keydown", unlockMusic);
-}
-document.addEventListener("pointerdown", unlockMusic);
-document.addEventListener("keydown", unlockMusic);
+holidayEl.addEventListener("click", () => {
+  setHoliday(!denEl.classList.contains("holiday"));
+});
 
 function nudge(activity) {
   nudgedNext = activity;
@@ -857,6 +832,5 @@ function preload() {
 }
 
 preload();
-tryPlayMusic();
 startFire();
 goToActivity(pickRandomActivity());

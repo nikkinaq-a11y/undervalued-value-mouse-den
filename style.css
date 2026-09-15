@@ -182,6 +182,63 @@ body {
   opacity: 1;
 }
 
+/* --- Holiday decorations ---
+   Hung above every other layer, including the painted scenes, because they are
+   things added to the room rather than a state of it: the scenes are the same
+   den without them, so anything lower would have the decorations vanish the
+   moment the mouse sat down. Their boxes are art-pixel measurements printed by
+   tools/build_assets.py — paste them, don't recompute them. */
+.decor-set {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  /* Visibility is held until the fade finishes so the set cannot be tabbed to
+     or read out while it is on its way out. */
+  transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+}
+
+.den.holiday .decor-set {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.45s ease;
+}
+
+.decor {
+  position: absolute;
+  inset: 0;
+}
+
+.decor img {
+  position: absolute;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+}
+
+/* The same pieces at the room's measured 0.55 dim, crossfading in on the same
+   1.6s curve as the lamps so the decorations go down with the room rather than
+   staying lit on top of a dark painting. */
+.decor-dark {
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+
+.den.night .decor-dark {
+  opacity: 1;
+}
+
+.decor .decor-cauldron  { left: 25.3906%; top: 57.8704%; width: 4.4271%; height: 7.4074%; }
+.decor .decor-pumpkin-a { left: 31.6406%; top: 58.7963%; width: 3.3854%; height: 5.5556%; }
+.decor .decor-pumpkin-b { left: 29.2969%; top: 52.3148%; width: 1.8229%; height: 3.2407%; }
+.decor .decor-pumpkin-c { left: 50.3906%; top: 57.4074%; width: 2.3438%; height: 3.7037%; }
+.decor .decor-hat       { left: 41.5365%; top: 28.7037%; width: 3.3854%; height: 5.5556%; }
+.decor .decor-portrait-a { left: 31.6406%; top: 19.4444%; width: 1.8229%; height: 5.5556%; }
+.decor .decor-portrait-b { left: 57.9427%; top: 26.3889%; width: 2.3438%; height: 5.5556%; }
+.decor .decor-portrait-c { left: 52.9948%; top: 27.3148%; width: 1.8229%; height: 4.1667%; }
+
 /* --- Controls ---
    Deliberately quiet: the room should hold the eye, not the buttons. They sit
    below the frame in the art's own browns so they read as part of the piece. */
@@ -204,11 +261,24 @@ body {
   max-width: 100%;
 }
 
+/* Above the frame rather than in the row below it: dressing the room is not one
+   of the things the mouse can be asked to do, and sitting it among those five
+   would read as a sixth activity. */
+.holidaybar {
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+}
+
 /* The outline is drawn with four offset shadows rather than a border, which
    leaves the corners notched out — square, stepped, and the same shape the room
    is drawn in. A real border would round or antialias them. */
 .control {
   --edge: rgba(255, 205, 150, 0.3);
+  /* The sound control is an anchor rather than a button -- it opens the playlist
+     in its own tab -- so the shared look has to sit on a link as well. */
+  display: inline-block;
+  text-decoration: none;
   padding: 9px 15px;
   border: none;
   border-radius: 0;

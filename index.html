@@ -8,6 +8,13 @@
 </head>
 <body>
   <div class="stage">
+  <!-- Above the frame, away from the activity row below it: those buttons are
+       what the mouse is doing, this dresses the room and leaves the mouse be. -->
+  <div class="holidaybar">
+    <button type="button" class="control control-holiday" id="holiday"
+            aria-pressed="false">Activate holiday mode</button>
+  </div>
+
   <main class="den" id="den">
     <!-- The room is painted in two lighting states. The lit one is always
          there; the dark one fades over it while the mouse watches a movie. -->
@@ -36,6 +43,33 @@
     <!-- Just the television's glass, so the picture can move while a movie is
          on without another copy of the whole room. -->
     <img class="layer tv-movie" id="tv-movie" alt="" />
+
+    <!-- Holiday decorations, hung above every other layer so they stay in the
+         room through the painted scenes as well. Two copies of the set: the lit
+         one, and the same pieces at the room's measured 0.55 dim, which fades in
+         with the lamps so they do not glow against a dark room. -->
+    <div class="decor-set" id="decor" aria-hidden="true">
+      <div class="decor decor-lit">
+        <img class="decor-portrait-a" src="assets/images/decor_portrait_a.png" alt="" />
+        <img class="decor-portrait-b" src="assets/images/decor_portrait_b.png" alt="" />
+        <img class="decor-portrait-c" src="assets/images/decor_portrait_c.png" alt="" />
+        <img class="decor-hat" src="assets/images/decor_hat.png" alt="" />
+        <img class="decor-cauldron" src="assets/images/decor_cauldron.png" alt="" />
+        <img class="decor-pumpkin-a" src="assets/images/decor_pumpkin_a.png" alt="" />
+        <img class="decor-pumpkin-b" src="assets/images/decor_pumpkin_b.png" alt="" />
+        <img class="decor-pumpkin-c" src="assets/images/decor_pumpkin_c.png" alt="" />
+      </div>
+      <div class="decor decor-dark">
+        <img class="decor-portrait-a" src="assets/images/decor_portrait_a_dark.png" alt="" />
+        <img class="decor-portrait-b" src="assets/images/decor_portrait_b_dark.png" alt="" />
+        <img class="decor-portrait-c" src="assets/images/decor_portrait_c_dark.png" alt="" />
+        <img class="decor-hat" src="assets/images/decor_hat_dark.png" alt="" />
+        <img class="decor-cauldron" src="assets/images/decor_cauldron_dark.png" alt="" />
+        <img class="decor-pumpkin-a" src="assets/images/decor_pumpkin_a_dark.png" alt="" />
+        <img class="decor-pumpkin-b" src="assets/images/decor_pumpkin_b_dark.png" alt="" />
+        <img class="decor-pumpkin-c" src="assets/images/decor_pumpkin_c_dark.png" alt="" />
+      </div>
+    </div>
   </main>
 
   <div class="controlbar">
@@ -48,13 +82,12 @@
   </nav>
 
   <!-- Kept out of the nav above: that group is what the mouse is doing, this is
-       just the room's own sound, and it is the visitor's to switch off. -->
-  <button type="button" class="control control-sound" id="sound" aria-pressed="false">
-    Music
-  </button>
+       just the room's own sound. It opens the playlist in its own tab rather
+       than playing in the page, so the visitor keeps Spotify's own controls --
+       and a real link, so it middle-clicks and cmd-clicks like any other. -->
+  <a class="control control-sound" id="sound" target="_blank" rel="noopener"
+     href="https://open.spotify.com/playlist/7fh2Bqm3z34GNX3tsIfmSl">Music</a>
   </div>
-
-  <audio id="music" src="assets/audio/cozy-coffee.mp3" loop preload="auto"></audio>
 
   </div>
 

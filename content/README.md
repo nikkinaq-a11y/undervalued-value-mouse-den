@@ -32,6 +32,35 @@ mapping is readable at a glance.
 Every scene file is pixel-registered to `room-lit.png` (offset 0,0). If new scene
 art does not register, it cannot be used this way — see PROGRESS.md.
 
+## `art/halloween/`
+
+The holiday decorations, in two layers:
+
+- `source/` — the stock sheets exactly as they arrived, on their flat backdrops:
+  nine framed portraits on sage green, nine jack-o'-lanterns on amber, a cauldron
+  and a hat on white. **These are third-party, and three of the four have no
+  identified creator or licence** — see the Attribution table in the top-level
+  README before submitting.
+- `*.png` — the same art with the backdrops flood-filled away and each object
+  split out on its own, produced by `tools/cut_halloween.py`:
+
+```
+python3 tools/cut_halloween.py     # source/ -> the cut-outs beside it
+python3 tools/build_assets.py      # cut-outs -> assets/images/decor_*.png
+```
+
+Twenty pieces are cut out; the eight the room actually hangs are chosen in the
+`DECOR` table in `tools/build_assets.py`, which also sets each one's size and
+position in art pixels. The other twelve stay here as material — changing which
+decorations the room uses is an edit to that table, not new art.
+
+Unlike everything else in the build, the decorations do **not** share the room's
+palette. The reason that rule exists is colour flicker between animation frames,
+and these never animate; meanwhile the room's 224 colours hold no purple or
+saturated orange, so putting a cauldron through them turns it to mud. They get
+their own 96-colour palette instead, and the room's own output is left untouched —
+holiday mode off is byte-identical to before the decorations existed.
+
 ## `reference/`
 
 Two screenshots used to measure things that were being guessed wrong:
