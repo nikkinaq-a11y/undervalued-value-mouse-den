@@ -91,12 +91,15 @@ def components(mask, min_area):
     return found
 
 
-def cut(name, crop=None, tol=34, min_area=2000, take=None, order=None):
+def cut(name, crop=None, tol=34, min_area=2000, take=None, order=None,
+        names=None):
     """Isolate one sheet and write each object it holds as its own PNG.
 
-    `take` limits how many objects to keep (largest first); `order` renames them
-    in reading order across the sheet instead, which is how a grid of nine wants
-    to be numbered.
+    `take` limits how many objects to keep (largest first); `order` sorts them
+    into reading order across the sheet instead, which is how a grid of nine
+    wants to be read. `names` then gives each one its own filename in that
+    order -- a sheet of nine jack-o'-lanterns is nine different faces, and
+    `pumpkin-wink` says which one it is where `jackolanterns-5` does not.
     """
     path = os.path.join(SRC, name)
     im = Image.open(path).convert("RGB")
@@ -122,12 +125,20 @@ def cut(name, crop=None, tol=34, min_area=2000, take=None, order=None):
             ordered.extend(band)
         found = ordered
 
+    if names and len(names) != len(found):
+        raise SystemExit(
+            f"{name}: cut {len(found)} objects but {len(names)} names given "
+            f"-- the sheet did not split the way the name list expects")
+
     stem = os.path.splitext(name)[0]
     written = []
     for i, (area, box, blob) in enumerate(found, 1):
         rgba = np.dstack([rgb, np.where(blob, 255, 0).astype(np.uint8)])
         piece = Image.fromarray(rgba).crop(box)
-        out_name = f"{stem}-{i}.png" if len(found) > 1 else f"{stem}.png"
+        if names:
+            out_name = f"{names[i - 1]}.png"
+        else:
+            out_name = f"{stem}-{i}.png" if len(found) > 1 else f"{stem}.png"
         piece.save(os.path.join(OUT, out_name))
         written.append((out_name, piece.size, area))
     return written
@@ -136,13 +147,24 @@ def cut(name, crop=None, tol=34, min_area=2000, take=None, order=None):
 os.makedirs(OUT, exist_ok=True)
 
 SHEETS = [
-    # Nine framed portraits on sage green, laid out in four rough rows.
-    dict(name="portraits.jpg", tol=40, min_area=3000, order=4),
+    # Nine framed portraits on sage green, laid out in four rough rows. Named
+    # for who is in the frame, in the order the sheet reads.
+    dict(name="portraits.jpg", tol=40, min_area=3000, order=4, names=[
+        "portrait-bat", "portrait-ghost", "portrait-skeleton",
+        "portrait-monster", "portrait-witch", "portrait-cat",
+        "portrait-vampire", "portrait-pumpkin", "portrait-frankenstein",
+    ]),
     # The amber sheet carries a "designed by freepik" credit under the bottom
     # row; cropping it off keeps the credit out of the art (it is recorded in
     # the README instead) and stops the lettering being read as a tenth object.
+    # Named for each carved face, since that is the only thing telling them
+    # apart when one is being picked for the room.
     dict(name="jackolanterns.jpg", crop=(0, 0, 626, 556), tol=40,
-         min_area=2500, order=3),
+         min_area=2500, order=3, names=[
+        "pumpkin-grin", "pumpkin-sad", "pumpkin-smirk",
+        "pumpkin-surprised", "pumpkin-wink", "pumpkin-fierce",
+        "pumpkin-jagged", "pumpkin-smile", "pumpkin-x-eyes",
+    ]),
     # The cauldron is surrounded by loose sparkles, which are their own tiny
     # islands -- keeping only the largest object drops them.
     dict(name="cauldron.jpg", tol=30, min_area=4000, take=1),

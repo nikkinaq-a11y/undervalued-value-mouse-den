@@ -517,6 +517,12 @@ eight-connected labelling — **20 cut-outs, of which the room uses 8.** The oth
 stay in `content/art/halloween/` as material; changing which decorations are up is
 an edit to the `DECOR` table, not new art.
 
+Each cut-out is **named for what is in it** (`portrait-ghost`, `pumpkin-wink`),
+from a name list given per sheet in `SHEETS`, in the order the sheet reads. The
+script refuses to write anything if a sheet stops splitting into as many objects
+as there are names — which is the check that catches a tolerance change quietly
+merging two frames and shifting every name after it by one.
+
 Two things the cutter has to do that are worth keeping: the jack-o'-lantern sheet
 carries a **"designed by freepik"** credit under the bottom row, which is cropped
 off before labelling (otherwise the lettering is read as a tenth pumpkin), and the
@@ -529,6 +535,24 @@ source. The Attribution table in the top-level README has the details and what t
 do about it. This is the one outstanding thing that actually blocks submission —
 generating the decorations the same way the room was made would settle it and match
 the art better besides.
+
+### They are drawn finer than the room, on purpose
+
+`DECOR_SUPERSAMPLE = 2` in the build: each piece ships at **twice** the art grid
+and is displayed in the same CSS box, so its pixels are half the size of the
+room's. Everything else in the project is exactly one art pixel per art pixel.
+
+This is a deliberate break from "The scale rule" above, asked for and worth
+keeping the reason for: the decorations are **found art**, detailed line work
+drawn at print resolution rather than for this grid, and at 1x a jack-o'-lantern's
+face collapsed into an orange blob and the cauldron lost its legs. The room's own
+art survives 1x because it was painted to be reduced.
+
+Two is as far as it goes — they still read as pixel art, just a finer weave than
+the wall behind them. **Sizes and positions in `DECOR` stay in room art pixels**
+and do not change with the supersample, so the CSS boxes are identical either
+way; only the file written to disk gets bigger. Set it back to 1 to put them back
+on the room's grid exactly.
 
 ### They do not share the room's palette
 

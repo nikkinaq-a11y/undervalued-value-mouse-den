@@ -286,34 +286,51 @@ print(f"tv_movie: {len(MOVIE_FLICKER)} frames from {MOVIE_SCREEN_ART}")
 # across all of them together so the set is consistent with itself, and the
 # room's own output is left untouched -- holiday mode off must be byte-identical
 # to before it existed.
-DECOR_PALETTE_COLORS = 96
+DECOR_PALETTE_COLORS = 128
+
+# The decorations are the one thing drawn finer than the room. Everything else
+# ships at exactly one art pixel per art pixel; these ship at twice that and are
+# displayed in the same box, so their pixels are half the size of the room's.
+#
+# That is a deliberate break from "The scale rule", asked for on purpose: the
+# stock art is detailed line work rather than something drawn for this grid, and
+# at 1x a pumpkin's face collapsed into a blob. Two is as far as it goes -- they
+# still read as pixel art, just a finer weave than the wall behind them. Set it
+# back to 1 to put them exactly on the room's grid again.
+DECOR_SUPERSAMPLE = 2
 
 # (source file, height in art px, centre x, bottom y) -- placed on the art grid,
-# so these numbers are the same ones the CSS below is printed from.
+# so these numbers are the same ones the CSS below is printed from. Sizes and
+# positions here are in ROOM art pixels and do not change with the supersample.
 DECOR = {
     # Floor pieces keep clear of art x 135-160 in the hearth band: that is where
     # both the sprite and the painted fire scenes put the mouse, and decorations
     # are drawn above everything so they would cut across it.
-    "cauldron":   ("cauldron.png",        16, 106, 141),
-    "pumpkin_a":  ("jackolanterns-1.png", 12, 128, 139),
-    "pumpkin_b":  ("jackolanterns-5.png",  7, 116, 120),   # on the hearth ledge
-    "pumpkin_c":  ("jackolanterns-3.png",  8, 198, 132),   # on the coffee table
-    "hat":        ("witch-hat.png",       12, 166,  74),   # on the coat hooks
-    "portrait_a": ("portraits-2.png",     12, 125,  54),   # over the television
+    "cauldron":   ("cauldron.png",          16, 106, 141),
+    "pumpkin_a":  ("pumpkin-grin.png",      12, 128, 139),
+    "pumpkin_b":  ("pumpkin-wink.png",       7, 116, 120),  # on the hearth ledge
+    "pumpkin_c":  ("pumpkin-smirk.png",      8, 198, 132),  # on the coffee table
+    "hat":        ("witch-hat.png",         12, 166,  74),  # on the coat hooks
+    "portrait_a": ("portrait-ghost.png",    12, 125,  54),  # over the television
     # Flanking the picture the room already hangs at art x 212-220, so the
     # holiday frames read as more of the same wall rather than a new idea.
-    "portrait_b": ("portraits-5.png",     12, 227,  69),
-    "portrait_c": ("portraits-1.png",      9, 207,  68),
+    "portrait_b": ("portrait-witch.png",    12, 227,  69),
+    "portrait_c": ("portrait-bat.png",       9, 207,  68),
 }
 
 DECOR_SRC = os.path.join(REPO, "content", "art", "halloween")
 
+# Art-grid size is what the CSS box is measured in; pixel size is that times the
+# supersample, which is what actually gets written to disk.
 decor = {}
+decor_art_size = {}
 for name, (fname, art_h, cx, by) in DECOR.items():
     art = Image.open(os.path.join(DECOR_SRC, fname)).convert("RGBA")
     art = art.crop(art.split()[-1].getbbox())
-    w = max(1, round(art_h * art.size[0] / art.size[1]))
-    decor[name] = art.resize((w, art_h), Image.BOX)
+    art_w = max(1, round(art_h * art.size[0] / art.size[1]))
+    decor_art_size[name] = (art_w, art_h)
+    decor[name] = art.resize((art_w * DECOR_SUPERSAMPLE,
+                              art_h * DECOR_SUPERSAMPLE), Image.BOX)
 
 # One palette across the whole set, sampled from the pieces themselves -- and
 # from their dimmed copies as well. Sampling only the lit ones leaves the palette
@@ -354,8 +371,10 @@ for name, p in decor.items():
         q.putalpha(alpha)
         q.save(os.path.join(OUT, f"decor_{name}{suffix}.png"))
     _, art_h, cx, by = DECOR[name]
-    decor_boxes[name] = (cx - p.size[0] / 2, by - art_h, p.size[0], art_h)
-print(f"decor: {len(decor)} pieces, palette {DECOR_PALETTE_COLORS}")
+    art_w, _ = decor_art_size[name]
+    decor_boxes[name] = (cx - art_w / 2, by - art_h, art_w, art_h)
+print(f"decor: {len(decor)} pieces, palette {DECOR_PALETTE_COLORS}, "
+      f"supersample x{DECOR_SUPERSAMPLE}")
 
 print(f"grid {ART_W}x{ART_H}, palette {PALETTE_COLORS}, pose repeat x{repeat}")
 print(f"mouse is {STANDING_ART_H / ART_H * 100:.2f}% of frame height\n")

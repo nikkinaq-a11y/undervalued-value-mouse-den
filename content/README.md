@@ -42,7 +42,13 @@ The holiday decorations, in two layers:
   identified creator or licence** — see the Attribution table in the top-level
   README before submitting.
 - `*.png` — the same art with the backdrops flood-filled away and each object
-  split out on its own, produced by `tools/cut_halloween.py`:
+  split out on its own, produced by `tools/cut_halloween.py`. **Named for what
+  is in them** — `portrait-ghost`, `pumpkin-wink`, `witch-hat` — because a sheet
+  of nine jack-o'-lanterns is nine different faces, and the name is the only
+  thing telling them apart when one is being picked for the room. The name list
+  lives beside each sheet in the script's `SHEETS` table, in the order the sheet
+  reads; the script refuses to write anything if the sheet stops splitting into
+  as many objects as there are names.
 
 ```
 python3 tools/cut_halloween.py     # source/ -> the cut-outs beside it
@@ -53,6 +59,12 @@ Twenty pieces are cut out; the eight the room actually hangs are chosen in the
 `DECOR` table in `tools/build_assets.py`, which also sets each one's size and
 position in art pixels. The other twelve stay here as material — changing which
 decorations the room uses is an edit to that table, not new art.
+
+They are also the one thing drawn **finer than the room**: `DECOR_SUPERSAMPLE`
+is 2, so each piece ships at twice the art grid and is displayed in the same box,
+making its pixels half the size of the room's. The stock art is detailed line
+work rather than something drawn for this grid, and at 1x a pumpkin's face
+collapsed into a blob. Set it back to 1 to put them exactly on the room's grid.
 
 Unlike everything else in the build, the decorations do **not** share the room's
 palette. The reason that rule exists is colour flicker between animation frames,
