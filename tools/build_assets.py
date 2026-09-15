@@ -288,21 +288,14 @@ print(f"tv_movie: {len(MOVIE_FLICKER)} frames from {MOVIE_SCREEN_ART}")
 # to before it existed.
 DECOR_PALETTE_COLORS = 128
 
-# The decorations are the one thing drawn finer than the room. Everything else
-# ships at exactly one art pixel per art pixel; these ship at twice that and are
-# displayed in the same box, so their pixels are half the size of the room's.
-#
-# That is a deliberate break from "The scale rule", asked for on purpose: the
-# stock art is detailed line work rather than something drawn for this grid, and
-# at 1 a pumpkin's face collapses into a blob and the cauldron loses its legs.
-# Set it back to 1 to put them exactly on the room's grid again.
-#
-# 1.5 was picked by rendering 2, 1.5 and 1 side by side at the same on-screen
-# size: 2 reads as too smooth against the room, 1 throws the small pumpkin's
-# face away entirely, and 1.5 is chunky while everything still reads. It need
-# not be a whole number -- the piece is drawn at whatever size this gives and
-# scaled to its box by the browser either way.
-DECOR_SUPERSAMPLE = 1.5
+# The decorations sit on the room's own grid: one art pixel per art pixel, the
+# same as everything else. Raising this draws them finer than the room, which
+# earlier builds did (at 2, then 1.5) because a pumpkin's face seemed to collapse
+# at 1 -- but that was the pale halo in premultiplied_resize() eating the art from
+# the edges inward, not the resolution. With the edges fixed, 1 holds together and
+# the decorations are back under "The scale rule" with the room and the mouse.
+# It need not be a whole number if a finer weave is ever wanted again.
+DECOR_SUPERSAMPLE = 1
 
 # The stock art is bright print colour and lands in a room lit by one fire, so
 # it is warmed and pulled down before it goes in. These are multipliers on the
@@ -351,6 +344,31 @@ DECOR = {
 
 DECOR_SRC = os.path.join(REPO, "content", "art", "halloween")
 
+
+def premultiplied_resize(art, size):
+    """Downsample RGBA without dragging the backdrop into the silhouette.
+
+    The cut-outs still hold the sheet's own background colour underneath their
+    transparent pixels -- amber behind the pumpkins, white behind the cauldron --
+    because cutting only rewrote the alpha. Averaging raw RGB therefore mixes
+    that backdrop into every edge pixel, and since the alpha is thresholded back
+    to opaque afterwards, the piece ends up ringed by a pale halo that reads as a
+    soft anti-aliased edge rather than a pixel one.
+
+    Weighting each pixel by its own alpha before averaging, and dividing it back
+    out after, is what makes a transparent pixel contribute nothing: the edge
+    comes out the colour of the thing itself.
+    """
+    a = np.asarray(art, float)
+    weight = a[..., 3:4] / 255.0
+    flat = np.clip(a[..., :3] * weight, 0, 255).astype(np.uint8)
+    small = np.asarray(Image.fromarray(flat).resize(size, Image.BOX), float)
+    alpha = art.split()[-1].resize(size, Image.BOX)
+    back = np.asarray(alpha, float)[..., None] / 255.0
+    rgb = np.where(back > 1e-3, small / np.maximum(back, 1e-3), 0)
+    return Image.fromarray(np.dstack([np.clip(rgb, 0, 255).astype(np.uint8),
+                                      np.asarray(alpha)]))
+
 # Art-grid size is what the CSS box is measured in; pixel size is that times the
 # supersample, which is what actually gets written to disk. Each piece is built
 # on a canvas taller than the piece itself, with the extra rows at the bottom
@@ -391,7 +409,7 @@ for name, (fname, art_h, cx, by) in DECOR.items():
     def ss(n):
         return max(1, round(n * DECOR_SUPERSAMPLE))
 
-    piece = art.resize((ss(art_w), ss(art_h)), Image.BOX)
+    piece = premultiplied_resize(art, (ss(art_w), ss(art_h)))
     # Warm and dim the art itself; the shadow is already its own colour.
     lo, hi = DECOR_LIGHT_RANGE
     local = min(hi, max(lo, lights[name] / mean_light))
@@ -403,7 +421,6 @@ for name, (fname, art_h, cx, by) in DECOR.items():
 
     pw = ss(art_w)
     ph = ss(art_h + shadow_h)
-    canvas = Image.new("RGBA", (pw, ph), SHADOW_RGB + (0,))
 
     # An ellipse centred on the base line, so its top half hides behind the
     # piece and only the part past the feet is ever seen.
@@ -415,9 +432,24 @@ for name, (fname, art_h, cx, by) in DECOR.items():
     d = ((xx - cxp) / rx) ** 2 + ((yy - cyp) / ry) ** 2
     falloff = np.clip(1.0 - d, 0, 1) ** 1.4
     shade = (falloff * SHADOW_ALPHA).astype(np.uint8)
-    canvas.putalpha(Image.fromarray(shade))
-    canvas.alpha_composite(piece, (0, 0))
-    decor[name] = canvas
+
+    # The piece's own alpha is cut hard, the shadow's is left graded, and the two
+    # are combined rather than composited. Compositing the piece onto the shadow
+    # merges the two alphas into one channel, and any later threshold then has to
+    # treat them alike: cut it and the shadow becomes a slab, leave it and the
+    # piece keeps the half-transparent rim the downsample gave it, which is
+    # exactly the soft edge these are not supposed to have.
+    art_px = np.asarray(piece)
+    body = np.zeros((ph, pw), np.uint8)
+    body_rgb = np.zeros((ph, pw, 3), np.uint8)
+    top = ss(art_h)
+    body[:top] = np.where(art_px[..., 3] >= 128, 255, 0)
+    body_rgb[:top] = art_px[..., :3]
+
+    rgb = np.where(body[..., None] > 0, body_rgb,
+                   np.array(SHADOW_RGB, np.uint8))
+    decor[name] = Image.fromarray(
+        np.dstack([rgb, np.maximum(body, shade)]))
 
 
 # One palette across the whole set, sampled from the pieces themselves -- and
@@ -450,14 +482,12 @@ decor_palette = dstrip.quantize(colors=DECOR_PALETTE_COLORS,
 # decorations take the same factor rather than glowing against a dark room.
 decor_boxes = {}
 for name, p in decor.items():
-    # The piece keeps hard pixel edges; the shadow keeps its gradient. Binarising
-    # the whole alpha would turn the shadow into a solid slab with a stepped rim.
+    # Already right: the piece was cut hard and the shadow left graded when the
+    # two were combined above, so nothing here has to threshold anything.
     alpha = p.split()[-1]
-    solid = alpha.point(lambda v: 255 if v > SHADOW_ALPHA else 0)
-    graded = Image.composite(Image.new("L", p.size, 255), alpha, solid)
     for suffix, img in (("", decor_flat[name]), ("_dark", decor_dim[name])):
         q = img.quantize(palette=decor_palette, dither=Image.NONE).convert("RGBA")
-        q.putalpha(graded)
+        q.putalpha(alpha)
         q.save(os.path.join(OUT, f"decor_{name}{suffix}.png"))
     _, art_h, cx, by = DECOR[name]
     art_w, _, shadow_h = decor_art_size[name]

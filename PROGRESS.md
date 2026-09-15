@@ -575,10 +575,9 @@ feet is seen. The shadow lives inside the image rather than in a second element,
 so the CSS box just runs `shadow_h` deeper than the piece; the top stays put, and
 moving a piece never means re-deriving where its shadow goes.
 
-**Gotcha:** the alpha cannot be binarised any more. The piece wants hard pixel
-edges, but binarising the whole channel turns the shadow into a solid slab with a
-stepped rim — so the piece's alpha is thresholded and the shadow's gradient is
-kept.
+**Gotcha:** the piece's alpha and the shadow's cannot share one threshold — see
+the two causes above. The body is cut hard, the shadow is left graded, and the
+two are combined rather than composited.
 
 ### Where the art came from, and the problem with it
 
@@ -607,29 +606,35 @@ do about it. This is the one outstanding thing that actually blocks submission �
 generating the decorations the same way the room was made would settle it and match
 the art better besides.
 
-### They are drawn finer than the room, on purpose
+### They sit on the room's grid, and the halo was the real problem
 
-`DECOR_SUPERSAMPLE = 1.5` in the build: each piece ships at **one and a half
-times** the art grid and is displayed in the same CSS box, so its pixels are two
-thirds the size of the room's. Everything else in the project is exactly one art
-pixel per art pixel.
+`DECOR_SUPERSAMPLE = 1`: one art pixel per art pixel, the same ruler as the room
+and the mouse. Earlier builds drew them finer (2, then 1.5) because at 1 a
+pumpkin's face seemed to collapse and the cauldron lost its legs — **that was
+never the resolution.** It was a pale halo eating the art from the edges inward,
+and once that was fixed 1 held together fine.
 
-The figure was picked by rendering 2, 1.5 and 1 side by side at the same
-on-screen size: **2** reads as too smooth against the room, **1** throws the
-small pumpkin's face away and the cauldron's legs with it, **1.5** is chunky
-while everything still reads. It does not have to be a whole number — the piece
-is drawn at whatever size this gives and scaled to its box by the browser
-regardless — so this is a dial, not a set of three choices.
+Two separate causes, both worth not rediscovering:
 
-This is a deliberate break from "The scale rule" above, asked for and worth
-keeping the reason for: the decorations are **found art**, detailed line work
-drawn at print resolution rather than for this grid. The room's own art survives
-1x because it was painted to be reduced; this was not.
+1. **The cut-outs still hold their sheet's background colour under the
+   transparent pixels** — amber behind the pumpkins, white behind the cauldron —
+   because `cut_halloween.py` only rewrites the alpha. Averaging raw RGB on the
+   way down therefore mixed that backdrop into every edge pixel, and the alpha
+   threshold then made those pixels fully opaque, ringing each piece in pale
+   orange or white. `premultiplied_resize()` weights each pixel by its own alpha
+   before averaging and divides it back out after, so a transparent pixel
+   contributes nothing and the edge comes out the colour of the thing itself.
+2. **The piece's alpha and the shadow's alpha have to be cut separately.** They
+   used to be composited into one channel, and any threshold then treated them
+   alike: cut it and the shadow became a slab with a stepped rim, leave it and
+   the piece kept the half-transparent rim the downsample gave it. They are
+   combined with `maximum()` now — the body cut hard at 128, the shadow left
+   graded.
 
 **Sizes and positions in `DECOR` stay in room art pixels** and do not change with
 the supersample, so the CSS boxes are identical whatever it is set to; only the
-file written to disk changes size. Set it to 1 to put them back on the room's
-grid exactly.
+file written to disk changes size. Raise it above 1 if a finer weave is ever
+wanted — it need not be a whole number.
 
 ### They do not share the room's palette
 

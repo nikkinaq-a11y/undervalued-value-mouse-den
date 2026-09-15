@@ -69,11 +69,11 @@ Each piece is warmed and dimmed into the room's light on the way through, scaled
 by how bright the room actually is behind it, and given a soft contact shadow
 that travels inside its own image.
 
-They are also the one thing drawn **finer than the room**: `DECOR_SUPERSAMPLE`
-is 2, so each piece ships at twice the art grid and is displayed in the same box,
-making its pixels half the size of the room's. The stock art is detailed line
-work rather than something drawn for this grid, and at 1x a pumpkin's face
-collapsed into a blob. Set it back to 1 to put them exactly on the room's grid.
+They sit on the room's own grid — `DECOR_SUPERSAMPLE` is 1, one art pixel per art
+pixel, the same ruler as everything else. Note that the cut-outs still hold their
+sheet's background colour beneath their transparent pixels, so the build has to
+resize them with alpha weighting or that backdrop bleeds into every edge as a
+pale halo; see PROGRESS.md.
 
 Unlike everything else in the build, the decorations do **not** share the room's
 palette. The reason that rule exists is colour flicker between animation frames,
