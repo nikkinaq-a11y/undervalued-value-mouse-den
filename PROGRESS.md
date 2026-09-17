@@ -1,6 +1,6 @@
 # Cozy Mouse Den — Progress & Handoff
 
-Working notes for resuming this project in a fresh session. Last updated 2026-09-15.
+Working notes for resuming this project in a fresh session. Last updated 2026-09-17.
 
 ## The assignment
 
@@ -512,10 +512,10 @@ half-transparent pumpkin on the way in read as a glitch rather than a transition
 The knob's own slide is kept: it steps across in four frames rather than gliding,
 which is motion in the control, not in the room.
 
-**Ten pieces**, listed with their size and position in `DECOR` in
+**Nine pieces**, listed with their size and position in `DECOR` in
 `tools/build_assets.py`: a witch's hat and a jack-o'-lantern on the right-hand
 shelves, a ghost portrait beside the round window, a witch portrait by the coat
-hooks, a cauldron on the floor at the hearth, and five more jack-o'-lanterns
+hooks, a cauldron on the floor at the hearth, and four more jack-o'-lanterns
 about the floor and on the coffee table.
 
 ### Placement is read back from a picture, not typed in

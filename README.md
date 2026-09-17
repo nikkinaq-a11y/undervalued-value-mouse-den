@@ -43,7 +43,7 @@ other.
 14. `scene_couch_1..2.png` — the mouse settled on the couch, lamps up and lamps down
 15. `tv_movie_1..8.png` — the television's glass, animated while a movie is on
 
-**Holiday decorations (10 pieces x 2 lighting states = 20 sprites)**
+**Holiday decorations (9 pieces x 2 lighting states = 18 sprites)**
 
 Switched on by the **Holiday mode** switch in the top right. Cut off their flat
 backdrops by `tools/cut_halloween.py`, then reduced onto the room's own art grid,
@@ -53,9 +53,9 @@ warmed and dimmed into its firelight, and given a soft contact shadow.
 17. `decor_portrait_1/2.png` — a ghost portrait beside the round window, a witch
     portrait by the coat hooks
 18. `decor_cauldron_1.png` — a cauldron on the floor at the hearth
-19. `decor_pumpkin_1..6.png` — six jack-o'-lanterns: on the shelves, at the hearth,
-    on the coffee table, by the couch, and a pair out on the floor
-20. `decor_*_dark.png` — the same ten at the room's measured 0.55 dim, so they go
+19. `decor_pumpkin_1..5.png` — five jack-o'-lanterns: on the shelves, at the hearth,
+    on the coffee table, by the couch, and one out on the floor
+20. `decor_*_dark.png` — the same nine at the room's measured 0.55 dim, so they go
     down with the lamps instead of glowing against a dark room
 
 **Also**

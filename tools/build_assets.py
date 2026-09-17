@@ -338,8 +338,12 @@ DECOR = {
     "pumpkin_2":  ("pumpkin-grin.png",    16, 114, 135),
     "pumpkin_3":  ("pumpkin-smirk.png",   11, 194, 138),
     "pumpkin_4":  ("pumpkin-wink.png",    14, 275, 142),
-    "pumpkin_5":  ("pumpkin-smirk.png",   23, 133, 166),
-    "pumpkin_6":  ("pumpkin-wink.png",    15, 147, 171),
+    # The pair out on the floor is one pumpkin now: the big smirking one that
+    # stood behind this one was taken out, here and in the placement image, so
+    # re-running read_placement.py does not quietly put it back -- and the keys
+    # are closed up, since the reader numbers sequentially and a gap here would
+    # make its next table rename everything below it.
+    "pumpkin_5":  ("pumpkin-wink.png",    15, 147, 171),
 }
 
 DECOR_SRC = os.path.join(REPO, "content", "art", "halloween")

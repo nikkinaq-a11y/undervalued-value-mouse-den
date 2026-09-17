@@ -235,11 +235,8 @@ body {
 .decor .decor-pumpkin-2 { left: 27.4740%; top: 55.0926%; width: 4.4271%; height: 8.7963%; }
 .decor .decor-pumpkin-3 { left: 48.9583%; top: 58.7963%; width: 3.1250%; height: 6.0185%; }
 .decor .decor-pumpkin-4 { left: 69.6615%; top: 59.2593%; width: 3.9062%; height: 7.8704%; }
-.decor .decor-pumpkin-5 { left: 31.2500%; top: 66.2037%; width: 6.7708%; height: 12.5000%; }
-.decor .decor-pumpkin-6 { left: 36.1979%; top: 72.2222%; width: 4.1667%; height: 8.3333%; }
+.decor .decor-pumpkin-5 { left: 36.1979%; top: 72.2222%; width: 4.1667%; height: 8.3333%; }
 
-.decor .decor-cauldron  { left: 25.3906%; top: 57.8704%; width: 4.4271%; height: 7.4074%; }
-.decor .decor-hat       { left: 41.5365%; top: 28.7037%; width: 3.3854%; height: 5.5556%; }
 
 /* --- Controls ---
    Deliberately quiet: the room should hold the eye, not the buttons. They sit

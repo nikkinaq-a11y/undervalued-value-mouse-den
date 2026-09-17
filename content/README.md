@@ -55,9 +55,9 @@ python3 tools/cut_halloween.py     # source/ -> the cut-outs beside it
 python3 tools/build_assets.py      # cut-outs -> assets/images/decor_*.png
 ```
 
-Twenty pieces are cut out; the ten the room actually hangs are listed in the
-`DECOR` table in `tools/build_assets.py` with their size and position. The other
-ten stay here as material.
+Twenty pieces are cut out; the nine the room actually hangs are listed in the
+`DECOR` table in `tools/build_assets.py` with their size and position. The rest
+stay here as material.
 
 **That table is generated, not written.** `tools/read_placement.py` reads it back
 out of `reference/holiday-placement.png` — a screenshot of the room with the
@@ -79,7 +79,7 @@ Unlike everything else in the build, the decorations do **not** share the room's
 palette. The reason that rule exists is colour flicker between animation frames,
 and these never animate; meanwhile the room's 224 colours hold no purple or
 saturated orange, so putting a cauldron through them turns it to mud. They get
-their own 96-colour palette instead, and the room's own output is left untouched —
+their own 128-colour palette instead, and the room's own output is left untouched —
 holiday mode off is byte-identical to before the decorations existed.
 
 ## `reference/`
