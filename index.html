@@ -13,7 +13,7 @@
        rebuilt under their existing filenames, so without a stamp a returning
        visitor keeps the previous build of them. The room's own art is not
        stamped: it is only ever added to, never rewritten. -->
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <!-- Pinned to the corner of the window, out of the stage entirely: the row
@@ -21,14 +21,14 @@
        setting of the room rather than one of them. A switch says so on sight. -->
   <div class="holidaybar">
     <!-- The room's own sound, not one of the mouse's activities either, so it
-         keeps the switch company up here rather than sitting in that row. It is
-         a real link -- it opens the playlist in its own tab, so the visitor gets
-         Spotify's controls, and it middle-clicks like any other link. -->
-    <a class="holiday-toggle" id="sound" target="_blank" rel="noopener"
-       href="https://open.spotify.com/playlist/7fh2Bqm3z34GNX3tsIfmSl">
+         keeps the switch company up here rather than sitting in that row. It
+         starts off, and the switch only ever shows what the audio is actually
+         doing: a browser can refuse to play, and a switch that said "on" while
+         the room was silent would be lying about the one thing it exists for. -->
+    <button type="button" class="holiday-toggle" id="sound" aria-pressed="false">
       <span class="holiday-text">Music</span>
-      <span class="holiday-switch is-link"><span class="holiday-knob"></span></span>
-    </a>
+      <span class="holiday-switch"><span class="holiday-knob"></span></span>
+    </button>
 
     <button type="button" class="holiday-toggle" id="holiday" aria-pressed="false">
       <span class="holiday-text">Holiday mode</span>
@@ -72,28 +72,28 @@
          with the lamps so they do not glow against a dark room. -->
     <div class="decor-set" id="decor" aria-hidden="true">
       <div class="decor decor-lit">
-        <img class="decor-hat-1" src="assets/images/decor_hat_1.png?v=5" alt="" />
-        <img class="decor-portrait-1" src="assets/images/decor_portrait_1.png?v=5" alt="" />
-        <img class="decor-portrait-2" src="assets/images/decor_portrait_2.png?v=5" alt="" />
-        <img class="decor-pumpkin-1" src="assets/images/decor_pumpkin_1.png?v=5" alt="" />
-        <img class="decor-cauldron-1" src="assets/images/decor_cauldron_1.png?v=5" alt="" />
-        <img class="decor-pumpkin-2" src="assets/images/decor_pumpkin_2.png?v=5" alt="" />
-        <img class="decor-pumpkin-3" src="assets/images/decor_pumpkin_3.png?v=5" alt="" />
-        <img class="decor-pumpkin-4" src="assets/images/decor_pumpkin_4.png?v=5" alt="" />
-        <img class="decor-pumpkin-5" src="assets/images/decor_pumpkin_5.png?v=5" alt="" />
-        <img class="decor-pumpkin-6" src="assets/images/decor_pumpkin_6.png?v=5" alt="" />
+        <img class="decor-hat-1" src="assets/images/decor_hat_1.png?v=6" alt="" />
+        <img class="decor-portrait-1" src="assets/images/decor_portrait_1.png?v=6" alt="" />
+        <img class="decor-portrait-2" src="assets/images/decor_portrait_2.png?v=6" alt="" />
+        <img class="decor-pumpkin-1" src="assets/images/decor_pumpkin_1.png?v=6" alt="" />
+        <img class="decor-cauldron-1" src="assets/images/decor_cauldron_1.png?v=6" alt="" />
+        <img class="decor-pumpkin-2" src="assets/images/decor_pumpkin_2.png?v=6" alt="" />
+        <img class="decor-pumpkin-3" src="assets/images/decor_pumpkin_3.png?v=6" alt="" />
+        <img class="decor-pumpkin-4" src="assets/images/decor_pumpkin_4.png?v=6" alt="" />
+        <img class="decor-pumpkin-5" src="assets/images/decor_pumpkin_5.png?v=6" alt="" />
+        <img class="decor-pumpkin-6" src="assets/images/decor_pumpkin_6.png?v=6" alt="" />
       </div>
       <div class="decor decor-dark">
-        <img class="decor-hat-1" src="assets/images/decor_hat_1_dark.png?v=5" alt="" />
-        <img class="decor-portrait-1" src="assets/images/decor_portrait_1_dark.png?v=5" alt="" />
-        <img class="decor-portrait-2" src="assets/images/decor_portrait_2_dark.png?v=5" alt="" />
-        <img class="decor-pumpkin-1" src="assets/images/decor_pumpkin_1_dark.png?v=5" alt="" />
-        <img class="decor-cauldron-1" src="assets/images/decor_cauldron_1_dark.png?v=5" alt="" />
-        <img class="decor-pumpkin-2" src="assets/images/decor_pumpkin_2_dark.png?v=5" alt="" />
-        <img class="decor-pumpkin-3" src="assets/images/decor_pumpkin_3_dark.png?v=5" alt="" />
-        <img class="decor-pumpkin-4" src="assets/images/decor_pumpkin_4_dark.png?v=5" alt="" />
-        <img class="decor-pumpkin-5" src="assets/images/decor_pumpkin_5_dark.png?v=5" alt="" />
-        <img class="decor-pumpkin-6" src="assets/images/decor_pumpkin_6_dark.png?v=5" alt="" />
+        <img class="decor-hat-1" src="assets/images/decor_hat_1_dark.png?v=6" alt="" />
+        <img class="decor-portrait-1" src="assets/images/decor_portrait_1_dark.png?v=6" alt="" />
+        <img class="decor-portrait-2" src="assets/images/decor_portrait_2_dark.png?v=6" alt="" />
+        <img class="decor-pumpkin-1" src="assets/images/decor_pumpkin_1_dark.png?v=6" alt="" />
+        <img class="decor-cauldron-1" src="assets/images/decor_cauldron_1_dark.png?v=6" alt="" />
+        <img class="decor-pumpkin-2" src="assets/images/decor_pumpkin_2_dark.png?v=6" alt="" />
+        <img class="decor-pumpkin-3" src="assets/images/decor_pumpkin_3_dark.png?v=6" alt="" />
+        <img class="decor-pumpkin-4" src="assets/images/decor_pumpkin_4_dark.png?v=6" alt="" />
+        <img class="decor-pumpkin-5" src="assets/images/decor_pumpkin_5_dark.png?v=6" alt="" />
+        <img class="decor-pumpkin-6" src="assets/images/decor_pumpkin_6_dark.png?v=6" alt="" />
       </div>
     </div>
   </main>
@@ -111,6 +111,8 @@
 
   </div>
 
-  <script src="script.js?v=5"></script>
+  <audio id="music" src="assets/audio/cozy-coffee.mp3" loop preload="auto"></audio>
+
+  <script src="script.js?v=6"></script>
 </body>
 </html>

@@ -69,18 +69,16 @@ warmed and dimmed into its firelight, and given a soft contact shadow.
 
 **Sound**
 
-25. The **Music** link, in the top right beside the holiday switch, opens a
-    Spotify playlist in a new tab rather than playing audio in the page, so the
-    visitor keeps Spotify's own controls and the room stays quiet unless asked.
-26. `assets/audio/cozy-coffee.mp3` — "Cozy Coffee Music" by **andriih**, quiet room
-    tone, looping. Downloaded from Pixabay (filename retains their
-    `artist-title-id` pattern). **No longer loaded by the page** since the Music
-    button became the playlist link; kept as a material. Confirm the exact source
-    page and licence before submitting if it is still to be listed.
+25. `assets/audio/cozy-coffee.mp3` — "Cozy Coffee Music" by **andriih**, quiet room
+    tone, looping at volume 0.16. Downloaded from Pixabay (filename retains their
+    `artist-title-id` pattern); **confirm the exact source page and licence before
+    submitting** so the credit here is right. Switched on and off by the **Music**
+    switch in the top right, which starts off and reports whatever the audio is
+    actually doing.
 
 **Type**
 
-27. `assets/fonts/PixelatedElegance.ttf` — *Pixelated Elegance*, the interface
+26. `assets/fonts/PixelatedElegance.ttf` — *Pixelated Elegance*, the interface
     typeface. **Public domain (CC0 1.0)**, from
     [FontSpace](https://www.fontspace.com/pixelated-elegance-font-f126145).
     Full licence text and source note ship alongside it in `assets/fonts/`.

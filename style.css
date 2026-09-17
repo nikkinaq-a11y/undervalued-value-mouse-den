@@ -286,9 +286,6 @@ body {
   --edge: rgba(255, 205, 150, 0.32);
   display: flex;
   align-items: center;
-  /* Music is an anchor, so the underline has to be turned off explicitly or it
-     is the only one of the pair that carries one. */
-  text-decoration: none;
   gap: 12px;
   padding: 8px 12px;
   border: none;
@@ -354,18 +351,8 @@ body {
   background: #ffb765;
 }
 
-/* Music opens a tab rather than switching anything on, so its switch has no
-   on state to show and never moves. It is there to make the two read as one
-   pair of controls; the knob sits over to the right like an arrow out. */
-.holiday-switch.is-link .holiday-knob {
-  left: calc(var(--px) * 8);
-  background: rgba(255, 216, 178, 0.55);
-}
-
-.holiday-toggle:hover .holiday-switch.is-link .holiday-knob,
-.holiday-toggle:focus-visible .holiday-switch.is-link .holiday-knob {
-  background: #ffb765;
-}
+/* Both switches are real two-state switches now, so they share one rule: the
+   knob slides on aria-pressed, whatever is being switched. */
 
 /* The outline is drawn with four offset shadows rather than a border, which
    leaves the corners notched out — square, stepped, and the same shape the room

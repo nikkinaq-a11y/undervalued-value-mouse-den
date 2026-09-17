@@ -478,29 +478,25 @@ walking back to it.
 
 ## Sound
 
-**The Music button is now a link to a Spotify playlist**, opened in its own tab:
-`https://open.spotify.com/playlist/7fh2Bqm3z34GNX3tsIfmSl`. It is a real `<a>`
-rather than a button, so it middle-clicks and cmd-clicks like any other link, and
-it wears the `.control` look — which is why `.control` now sets `display:
-inline-block` and `text-decoration: none`.
-
-**Playback is Spotify's to start, not ours.** Opening the tab is all a page can
-do; whether it plays on arrival depends on the visitor's own Spotify session. There
-is no way to force it from here, so "it didn't start playing by itself" is not a
-bug in this repo.
-
-The in-page audio is gone: no `<audio>` element, and the whole room-tone block —
-volume, the autoplay-unlock retry on the first gesture, `aria-pressed` reflecting
-paused state — has been deleted from `script.js`.
-`assets/audio/cozy-coffee.mp3` is **still on disk and still listed as a material
-but no longer loaded**, so its 4.7 MB now costs nothing at load time. Delete it if
-it gets dropped from the materials list.
+One quiet looping track, `assets/audio/cozy-coffee.mp3` at volume 0.16 — the room
+rather than the point. **A Spotify link was tried here and taken back out:** a
+link can open a playlist in a tab but cannot start it playing, which left the
+control unable to say whether the room had any sound, and the switch beside it
+with no state to show.
 
 **It sits in the top-right corner beside the holiday switch**, not in the row
 under the frame: that row is what the mouse can be asked to do, and neither the
-playlist nor the decorations are. It wears the same switch chrome so the two read
-as a pair — but its knob never moves, because opening a tab is not an on/off
-state and a switch that animated would be claiming something it cannot know.
+sound nor the decorations are. Both are real two-state switches, so they share
+one rule — the knob slides on `aria-pressed`, whatever is being switched.
+
+**It starts off, and the switch only ever reflects what the audio is actually
+doing.** `reflectMusic()` is wired to the element's own `play` and `pause` events
+rather than to the click, and `play()` is a promise that can be refused — a
+browser will not start audio it does not think the visitor asked for. Reflecting
+the click instead would let the knob sit at "on" over a silent room, which is a
+lie about the one thing the control exists to report. Starting off also means
+there is no autoplay to fight and no unlock-on-first-gesture hack: the click that
+turns it on *is* the gesture.
 
 ## Holiday mode
 
@@ -683,10 +679,11 @@ which apply just as much when rearranging things in the placement image:
 ### The selector fix this needed
 
 `controlEls` was `document.querySelectorAll(".control")` and is now scoped to
-`".controls .control"`. The holiday toggle and the playlist link wear the same
-`.control` look but are not modes, and `setMode()` sets `aria-pressed` across
-everything in that list — unscoped, pressing any activity button would have
-silently cleared the holiday button's own state.
+`".controls .control"`. Neither corner switch is a mode, and `setMode()` sets
+`aria-pressed` across everything in that list — unscoped, pressing any activity
+button would flip both switches to "off" while the decorations stayed up and the
+music kept playing, which is the worst kind of wrong: the control lying about
+state that is plainly visible beside it.
 
 ## The interface
 

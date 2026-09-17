@@ -274,10 +274,12 @@ const sceneEl = document.getElementById("scene");
 const sceneFadeEl = document.getElementById("scene-fade");
 const tvMovieEl = document.getElementById("tv-movie");
 const holidayEl = document.getElementById("holiday");
-// Scoped to the activity group on purpose. The holiday toggle and the playlist
-// link wear the same .control look but are not modes, and setMode sets
-// aria-pressed across everything it finds here -- picking them up would clear
-// the holiday button's own state every time an activity button was pressed.
+const musicEl = document.getElementById("music");
+const soundEl = document.getElementById("sound");
+// Scoped to the activity group on purpose. The holiday and music switches are
+// not modes, and setMode sets aria-pressed across everything it finds here --
+// unscoped, pressing any activity button would silently flip both switches off
+// while the decorations stayed up and the music kept playing.
 const controlEls = Array.from(document.querySelectorAll(".controls .control"));
 
 function setPose(poseName, flip) {
@@ -789,6 +791,32 @@ function startWander() {
   // then the mouse settles into something.
   currentTimer = setTimeout(endStint, randomDuration());
 }
+
+// --- Room tone ---------------------------------------------------------------
+// Quiet enough to be the room rather than the point. The switch starts off and
+// only ever reflects what the audio is actually doing: a browser can refuse to
+// start playback, and the `play()` promise is the only honest answer about
+// whether it did. Reflecting on the element's own play/pause events rather than
+// on the click means the knob cannot end up claiming sound the room is not
+// making.
+const MUSIC_VOLUME = 0.16;
+
+function reflectMusic() {
+  soundEl.setAttribute("aria-pressed", String(!musicEl.paused));
+}
+
+function toggleMusic() {
+  if (musicEl.paused) {
+    musicEl.volume = MUSIC_VOLUME;
+    musicEl.play().then(reflectMusic).catch(reflectMusic);
+  } else {
+    musicEl.pause();
+  }
+}
+
+soundEl.addEventListener("click", toggleMusic);
+musicEl.addEventListener("play", reflectMusic);
+musicEl.addEventListener("pause", reflectMusic);
 
 // --- Holiday mode ------------------------------------------------------------
 // Dressing the room, not an activity: the decorations go up and come down
