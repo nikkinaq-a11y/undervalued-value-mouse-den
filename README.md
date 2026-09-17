@@ -143,4 +143,6 @@ watched; the real pacing is 2–15 minutes, which is the whole point of the piec
 
 ## Status
 
-Part 1 (Materials) — in progress, due Sep 15.
+Part 1 (Materials) — done. Part 2 (Undervalued Value) — in progress, due Sep 17:
+`index.html` + `style.css` are built, `wireframe.jpg` documents the page structure
+and interactions, and the site links back to this README for Part 1's materials list.

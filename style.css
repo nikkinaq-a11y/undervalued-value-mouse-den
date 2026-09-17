@@ -243,6 +243,27 @@ body {
    below the frame in the art's own browns so they read as part of the piece. */
 /* The activity group and the sound switch, spaced apart so they do not read as
    one row of equal choices. */
+/* Quiet, single-line credit for Part 1's materials list. Sits under the
+   controls rather than beside them so it never reads as a sixth button. */
+.materials {
+  text-align: center;
+  margin-top: 4px;
+}
+
+.materials a {
+  color: rgba(255, 216, 178, 0.55);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 216, 178, 0.3);
+}
+
+.materials a:hover,
+.materials a:focus-visible {
+  color: rgba(255, 228, 198, 0.9);
+  border-bottom-color: rgba(255, 216, 178, 0.7);
+}
+
 .controlbar {
   display: flex;
   flex-wrap: wrap;
