@@ -844,19 +844,50 @@ function startWander() {
 // making.
 const MUSIC_VOLUME = 0.16;
 
+// Played back to back in this order, and round again from the top. Each track
+// carries a trim so they all land at the loudness the room has always had --
+// measured off the decoded audio as RMS, and set against the old single track
+// (-18.2 dBFS) that MUSIC_VOLUME was tuned on. Without it the coffee-shop one
+// comes in about 7 dB hotter than the rest.
+const PLAYLIST = [
+  { file: "zephiramusic-lofi-jazz-582886.mp3", trim: 0.81 },
+  { file: "ornave-lofi-velvet-594989.mp3", trim: 0.82 },
+  { file: "ornave-lofi-moon-light-553399.mp3", trim: 0.85 },
+  { file: "aurectheme-jazz-lofi-587555.mp3", trim: 0.82 },
+  { file: "alex-morgan-lofi-jazz-retro-coffee-shop-560042.mp3", trim: 0.44 },
+  { file: "zephiramusic-jazz-lofi-590181.mp3", trim: 0.74 },
+];
+
+let trackNow = 0;
+
+function loadTrack(i) {
+  trackNow = i % PLAYLIST.length;
+  musicEl.src = `assets/audio/${PLAYLIST[trackNow].file}`;
+  musicEl.volume = MUSIC_VOLUME * PLAYLIST[trackNow].trim;
+}
+
+// Between tracks the element reports itself paused for a moment, having
+// reached the end of one file. That is not the music stopping, so the switch
+// does not flick off and back on for it.
 function reflectMusic() {
+  if (musicEl.ended) return;
   soundEl.setAttribute("aria-pressed", String(!musicEl.paused));
 }
 
 function toggleMusic() {
   if (musicEl.paused) {
-    musicEl.volume = MUSIC_VOLUME;
     musicEl.play().then(reflectMusic).catch(reflectMusic);
   } else {
     musicEl.pause();
   }
 }
 
+musicEl.addEventListener("ended", () => {
+  loadTrack(trackNow + 1);
+  musicEl.play().then(reflectMusic).catch(reflectMusic);
+});
+
+loadTrack(0);
 soundEl.addEventListener("click", toggleMusic);
 musicEl.addEventListener("play", reflectMusic);
 musicEl.addEventListener("pause", reflectMusic);

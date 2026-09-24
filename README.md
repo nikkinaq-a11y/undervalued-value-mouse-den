@@ -69,12 +69,21 @@ warmed and dimmed into its firelight, and given a soft contact shadow.
 
 **Sound**
 
-25. `assets/audio/cozy-coffee.mp3` — "Cozy Coffee Music" by **andriih**, quiet room
-    tone, looping at volume 0.16. Downloaded from Pixabay (filename retains their
-    `artist-title-id` pattern); **confirm the exact source page and licence before
-    submitting** so the credit here is right. Switched on and off by the **Music**
-    switch in the top right, which starts off and reports whatever the audio is
-    actually doing.
+25. `assets/audio/` — six lofi jazz tracks, played back to back in this order and
+    looped from the top, at volume 0.16 with a per-track trim so they sit at one
+    loudness. All downloaded from Pixabay (filenames keep their
+    `artist-title-id` pattern); **confirm each source page and licence before
+    submitting** so the credits here are right.
+    - "Lofi Jazz" by **zephiramusic** (`zephiramusic-lofi-jazz-582886.mp3`)
+    - "Lofi Velvet" by **ornave** (`ornave-lofi-velvet-594989.mp3`)
+    - "Lofi Moon Light" by **ornave** (`ornave-lofi-moon-light-553399.mp3`)
+    - "Jazz Lofi" by **aurectheme** (`aurectheme-jazz-lofi-587555.mp3`)
+    - "Lofi Jazz Retro Coffee Shop" by **alex-morgan**
+      (`alex-morgan-lofi-jazz-retro-coffee-shop-560042.mp3`)
+    - "Jazz Lofi" by **zephiramusic** (`zephiramusic-jazz-lofi-590181.mp3`)
+
+    Switched on and off by the **Music** switch in the top right, which starts
+    off and reports whatever the audio is actually doing.
 
 **Type**
 
