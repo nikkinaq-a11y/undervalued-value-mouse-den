@@ -94,10 +94,14 @@ body {
 .tv-off     { z-index: 2; }
 .fire       { z-index: 3; }
 .zone       { z-index: 4; }
-.mouse      { z-index: 5; }
 .scene      { z-index: 6; }
 .scene-fade { z-index: 9; }
 .tv-movie   { z-index: 10; }
+/* Above the holiday decorations (11) too: they are set dressing on the floor
+   and walls, and the mouse walking in front of a pumpkin is what keeps the
+   room's depth. It is hidden whenever a painted scene is up, so this never
+   puts it over one. */
+.mouse      { z-index: 12; }
 
 /* The cocoa scenes carry the room's own flame, pixel for pixel -- 2 art pixels
    of 3315 differ from the background. So the flicker can keep running over
