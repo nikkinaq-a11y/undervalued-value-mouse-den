@@ -29,7 +29,14 @@ const SPRITES = {
   front: { file: "mouse_front", w: 22, h: 36 },
   side:  { file: "mouse_side",  w: 23, h: 36 },
   back:  { file: "mouse_back",  w: 19, h: 36 },
-  walk:  { file: "mouse_walk",  w: 29, h: 34 },
+  walk_side_1: { file: "mouse_walk_side_1", w: 34, h: 36 },
+  walk_side_2: { file: "mouse_walk_side_2", w: 34, h: 36 },
+  walk_side_3: { file: "mouse_walk_side_3", w: 34, h: 36 },
+  walk_side_4: { file: "mouse_walk_side_4", w: 34, h: 36 },
+  walk_side_5: { file: "mouse_walk_side_5", w: 34, h: 36 },
+  walk_side_6: { file: "mouse_walk_side_6", w: 34, h: 36 },
+  walk_front:  { file: "mouse_walk_front",  w: 25, h: 36 },
+  walk_back:   { file: "mouse_walk_back",   w: 32, h: 36 },
   lie:   { file: "mouse_lie",   w: 31, h: 18 },
 };
 
@@ -253,7 +260,7 @@ let currentFlip = false;
 let mode = "idle";
 let sceneTimer = null;
 let turnTimer = null;
-let walkStride = true;
+let walkFrame = 0;
 let pendingFrom = null;
 let resumeMoving = false;
 let wanderAt = null;
@@ -514,11 +521,25 @@ function randomDuration() {
   return STINT_MIN + Math.random() * (STINT_MAX - STINT_MIN);
 }
 
-// Alternating two frames is how 8-bit walk cycles worked; with only a
-// stride frame and a standing frame available, that is a genuine cycle.
-// The cycle itself is driven by runLegs, so each frame change is also a step.
+// Six painted side frames make the full stride, and the walk runs through them
+// in order. Toward or away from the viewer there is one frame each, with a
+// foot forward; mirroring it puts the other foot forward, so alternating the
+// mirror is the whole cycle.
+const SIDE_WALK_FRAMES = 6;
+
 function startWalking() {
-  walkStride = true;
+  walkFrame = 0;
+}
+
+// Which frame to show for the current step. A leg is drawn from the side unless
+// it goes more up or down the room than across it, and then from the back
+// (walking away, up the screen) or the front (coming toward the viewer).
+function showWalkFrame(hop) {
+  if (hop.view === "side") {
+    setPose(`walk_side_${(walkFrame % SIDE_WALK_FRAMES) + 1}`, !hop.facingLeft);
+  } else {
+    setPose(`walk_${hop.view}`, walkFrame % 2 === 1);
+  }
 }
 
 function stopWalking() {
@@ -558,11 +579,11 @@ function endStint() {
 }
 
 // Walks the route in hops rather than a glide: every leg is cut into steps, one
-// per walk frame, and the mouse jumps a step forward on the same tick the
-// frame flips. Moving and animating on one clock is what makes it read as a
-// rough hand-drawn walk instead of a sprite sliding along a rail. A leg with no
-// sideways movement keeps the facing it already had rather than snapping to an
-// arbitrary one.
+// per walk frame, and the mouse moves a step forward on the same tick the next
+// frame of the walk comes up. Moving and animating on one clock is what makes
+// it read as a drawn walk instead of a sprite sliding along a rail. A leg with
+// no sideways movement keeps the facing it already had rather than snapping to
+// an arbitrary one.
 function runLegs(legs, onDone) {
   const hops = [];
   let atLeft = parseFloat(mouseEl.style.left) || 0;
@@ -572,12 +593,16 @@ function runLegs(legs, onDone) {
     const toLeft = parseFloat(leg.left);
     const toBottom = parseFloat(leg.bottom);
     if (toLeft !== atLeft) facingLeft = toLeft < atLeft;
+    const across = Math.abs(toLeft - atLeft) / 100 * ART_W;
+    const upDown = Math.abs(toBottom - atBottom) / 100 * ART_H;
+    const view = across >= upDown ? "side" : toBottom > atBottom ? "back" : "front";
     const n = Math.max(1, Math.round(leg.ms / WALK_FRAME_MS));
     for (let k = 1; k <= n; k += 1) {
       hops.push({
         left: k === n ? leg.left : `${atLeft + (toLeft - atLeft) * k / n}%`,
         bottom: k === n ? leg.bottom : `${atBottom + (toBottom - atBottom) * k / n}%`,
         facingLeft,
+        view,
       });
     }
     atLeft = toLeft;
@@ -585,9 +610,11 @@ function runLegs(legs, onDone) {
   }
 
   mouseEl.style.transitionDuration = "0ms";
-  // Lift a foot on the spot first, so the first hop lands on the next frame.
-  if (hops.length) facingLeftNow = hops[0].facingLeft;
-  setPose(walkStride ? "walk" : "side", !facingLeftNow);
+  // Take the first step on the spot, so the first move lands on the next frame.
+  if (hops.length) {
+    facingLeftNow = hops[0].facingLeft;
+    showWalkFrame(hops[0]);
+  }
 
   let i = 0;
   clearInterval(walkInterval);
@@ -599,11 +626,11 @@ function runLegs(legs, onDone) {
       return;
     }
     const hop = hops[i++];
-    walkStride = !walkStride;
+    walkFrame += 1;
     facingLeftNow = hop.facingLeft;
     mouseEl.style.left = hop.left;
     mouseEl.style.bottom = hop.bottom;
-    setPose(walkStride ? "walk" : "side", !facingLeftNow);
+    showWalkFrame(hop);
     updateDepth();
   }, WALK_FRAME_MS);
 }
@@ -872,6 +899,10 @@ function preload() {
   }
   names.push(COUCH_LIT, COUCH_DARK);
   for (let i = 1; i <= TV_FRAMES; i += 1) names.push(`tv_movie_${i}`);
+  // Every walk frame, so the first trip does not stutter while they load.
+  for (const pose of Object.keys(SPRITES)) {
+    if (pose.startsWith("walk")) names.push(SPRITES[pose].file);
+  }
   for (const n of names) new Image().src = `assets/images/${n}.png`;
 }
 

@@ -238,6 +238,63 @@ for suffix, table in (("", poses), ("_dark", poses_dark)):
         q.save(os.path.join(OUT, f"mouse_{name}{suffix}.png"))
         sizes[name] = p.size
 
+# --- Walk cycles --------------------------------------------------------------
+# The mouse walks by switching frames rather than gliding, so every frame of a
+# cycle has to hold the character still where it should be still. Each frame is
+# set on one shared canvas with the head at its centre and the feet on its
+# bottom edge: the legs and tail change from frame to frame, the head does not
+# jump about, and the element never changes size mid-stride.
+#
+# The six side frames were painted at one scale on one sheet, so they share one
+# scale factor too; sizing each to its own bounding box would make the mouse
+# grow and shrink as its legs open and close. They face right on the sheet and
+# are mirrored here, since every sprite faces left unflipped.
+#
+# The front and back walks are one frame each, with a foot forward. The page
+# mirrors them to put the other foot forward, which is why they are centred on
+# the head: the mirror turns round that point and the head stays put.
+#
+# These are quantised against the room's palette but deliberately left out of
+# sampling it, so adding them leaves every other asset byte-identical.
+WALK_CYCLES = {
+    "walk_side": ([f"pose-walk-side-{i}.png" for i in range(1, 7)], True),
+    "walk_front": (["pose-walk-front.png"], False),
+    "walk_back": (["pose-walk-back.png"], False),
+}
+
+
+def head_x(art):
+    """Horizontal centre of the top third of the silhouette -- the head and hat,
+    which stay put while the legs, arms and tail swing."""
+    alpha = np.array(art.split()[-1]) > 128
+    top = alpha[: max(1, alpha.shape[0] // 3)]
+    return float(np.where(top)[1].mean())
+
+
+for cycle, (files, mirror) in WALK_CYCLES.items():
+    arts = [extract(s(f)) for f in files]
+    if mirror:
+        arts = [a.transpose(Image.FLIP_LEFT_RIGHT) for a in arts]
+    heads = [head_x(a) for a in arts]
+    half = max(max(hx, a.size[0] - hx) for a, hx in zip(arts, heads))
+    src_h = max(a.size[1] for a in arts)
+    src_w = int(np.ceil(half * 2))
+    scale = STANDING_ART_H / src_h
+    w = max(1, round(src_w * scale))
+    for i, (art, hx) in enumerate(zip(arts, heads), 1):
+        canvas = Image.new("RGBA", (src_w, src_h), (0, 0, 0, 0))
+        canvas.paste(art, (round(src_w / 2 - hx), src_h - art.size[1]), art)
+        small = canvas.resize((w, STANDING_ART_H), Image.BOX)
+        name = f"{cycle}_{i}" if len(files) > 1 else cycle
+        for suffix, img in (("", small), ("_dark", dim(small))):
+            rgb = Image.new("RGB", img.size, (0, 0, 0))
+            rgb.paste(img, (0, 0), img)
+            q = apply_palette(rgb).convert("RGBA")
+            q.putalpha(img.split()[-1].point(lambda v: 255 if v > 128 else 0))
+            q.save(os.path.join(OUT, f"mouse_{name}{suffix}.png"))
+        sizes[name] = small.size
+    print(f"{cycle}: {len(files)} frame(s), {w}x{STANDING_ART_H}")
+
 # --- Whole-room scenes ------------------------------------------------------
 # Quantised against the room's own palette rather than one of their own: they
 # are the same room, so the palette already covers them, and reusing it keeps
@@ -516,7 +573,7 @@ print("\n--- script.js: SPRITES ---")
 print(f"const ART_H = {ART_H};")
 print(f"const STANDING_ART_H = {STANDING_ART_H};")
 for name, size in sizes.items():
-    pad = " " * (5 - len(name))
+    pad = " " * max(1, 5 - len(name))
     print(f'  {name}:{pad} {{ file: "mouse_{name}",{pad} w: {size[0]}, h: {size[1]} }},')
 
 print("\n--- style.css: holiday decorations ---")
