@@ -452,11 +452,7 @@ body {
   background-repeat: no-repeat;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
-  /* Duration is set per leg from JS — stepping off the couch is quick, crossing
-     the room is not — so only the property and curve live here. */
-  transition-property: left, bottom;
-  transition-timing-function: linear;
-  transition-duration: 0ms;
+  /* No transition: the walk moves it in hops from JS, one per walk frame. */
 }
 
 /* A scene carries its own painted mouse, so the walking one gets out of the way
@@ -498,9 +494,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* transition-duration is set inline per leg, so it has to be the property
-     itself that is switched off here or the inline value would win. */
-  .mouse { transition-property: none; }
   .scene-fade, .tv-movie, html { transition-duration: 0.01ms; }
   /* .decor-set is not listed: it switches with display now, not a transition. */
   .decor-dark, .holiday-knob { transition-duration: 0.01ms; }

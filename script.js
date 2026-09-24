@@ -59,9 +59,8 @@ const DEPTH_PER_PX = 0.0047;   // ~1.08x down at the front lane, ~0.88x at the b
 
 let depthNow = 1;
 
-// During a walk the destination is already written into style.bottom, so the
-// live position has to come from the computed value instead — that is what is
-// actually interpolating.
+// Reads the position off the computed style, so it is right whether the mouse
+// was placed directly or is mid-walk.
 function updateDepth() {
   const denH = denEl.clientHeight;
   if (!denH) return;
@@ -173,7 +172,7 @@ function laneEntry(place, lane) {
 const WALK_FRAME_MS = 180; // choppy on purpose — reads as retro, not smooth
 
 // A trip is three legs: off the furniture onto the lane, along the lane, then
-// up to the next resting spot. The CSS duration is set per leg from JS.
+// up to the next resting spot. Each leg's time is cut into walk-frame hops.
 // Legs are paced by how far they actually are rather than by their role, so a
 // step off the couch is brisk and crossing the room is not, without either
 // being hand-tuned. The floor is one walking speed throughout.
@@ -255,7 +254,6 @@ let mode = "idle";
 let sceneTimer = null;
 let turnTimer = null;
 let walkStride = true;
-let depthInterval = null;
 let pendingFrom = null;
 let resumeMoving = false;
 let wanderAt = null;
@@ -518,19 +516,14 @@ function randomDuration() {
 
 // Alternating two frames is how 8-bit walk cycles worked; with only a
 // stride frame and a standing frame available, that is a genuine cycle.
+// The cycle itself is driven by runLegs, so each frame change is also a step.
 function startWalking() {
   walkStride = true;
-  walkInterval = setInterval(() => {
-    walkStride = !walkStride;
-    setPose(walkStride ? "walk" : "side", !facingLeftNow);
-  }, WALK_FRAME_MS);
 }
 
 function stopWalking() {
   clearInterval(walkInterval);
   walkInterval = null;
-  clearInterval(depthInterval);
-  depthInterval = null;
 }
 
 function settleInto(name) {
@@ -564,32 +557,55 @@ function endStint() {
   setMode(mode);   // next === mode, so this releases to idle
 }
 
-// Walks one leg at a time, setting the CSS duration per leg and turning to face
-// whichever way that leg goes. A leg with no sideways movement keeps the
-// facing it already had rather than snapping to an arbitrary one.
+// Walks the route in hops rather than a glide: every leg is cut into steps, one
+// per walk frame, and the mouse jumps a step forward on the same tick the
+// frame flips. Moving and animating on one clock is what makes it read as a
+// rough hand-drawn walk instead of a sprite sliding along a rail. A leg with no
+// sideways movement keeps the facing it already had rather than snapping to an
+// arbitrary one.
 function runLegs(legs, onDone) {
+  const hops = [];
+  let atLeft = parseFloat(mouseEl.style.left) || 0;
+  let atBottom = parseFloat(mouseEl.style.bottom) || 0;
+  let facingLeft = facingLeftNow;
+  for (const leg of legs) {
+    const toLeft = parseFloat(leg.left);
+    const toBottom = parseFloat(leg.bottom);
+    if (toLeft !== atLeft) facingLeft = toLeft < atLeft;
+    const n = Math.max(1, Math.round(leg.ms / WALK_FRAME_MS));
+    for (let k = 1; k <= n; k += 1) {
+      hops.push({
+        left: k === n ? leg.left : `${atLeft + (toLeft - atLeft) * k / n}%`,
+        bottom: k === n ? leg.bottom : `${atBottom + (toBottom - atBottom) * k / n}%`,
+        facingLeft,
+      });
+    }
+    atLeft = toLeft;
+    atBottom = toBottom;
+  }
+
+  mouseEl.style.transitionDuration = "0ms";
+  // Lift a foot on the spot first, so the first hop lands on the next frame.
+  if (hops.length) facingLeftNow = hops[0].facingLeft;
+  setPose(walkStride ? "walk" : "side", !facingLeftNow);
+
   let i = 0;
-  clearInterval(depthInterval);
-  depthInterval = setInterval(updateDepth, 40);
-  const step = () => {
-    if (i >= legs.length) {
-      clearInterval(depthInterval);
-      depthInterval = null;
+  clearInterval(walkInterval);
+  walkInterval = setInterval(() => {
+    if (i >= hops.length) {
+      stopWalking();
       updateDepth();
       onDone();
       return;
     }
-    const leg = legs[i++];
-    const fromLeft = parseFloat(mouseEl.style.left) || 0;
-    const toLeft = parseFloat(leg.left);
-    if (toLeft !== fromLeft) facingLeftNow = toLeft < fromLeft;
+    const hop = hops[i++];
+    walkStride = !walkStride;
+    facingLeftNow = hop.facingLeft;
+    mouseEl.style.left = hop.left;
+    mouseEl.style.bottom = hop.bottom;
     setPose(walkStride ? "walk" : "side", !facingLeftNow);
-    mouseEl.style.transitionDuration = `${leg.ms}ms`;
-    mouseEl.style.left = leg.left;
-    mouseEl.style.bottom = leg.bottom;
-    walkTimer = setTimeout(step, leg.ms);
-  };
-  step();
+    updateDepth();
+  }, WALK_FRAME_MS);
 }
 
 function goToActivity(name, onArrive) {
