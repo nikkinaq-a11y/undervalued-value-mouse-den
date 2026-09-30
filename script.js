@@ -278,6 +278,7 @@ const tvZoneEl = document.getElementById("zone-tv");
 const sceneEl = document.getElementById("scene");
 const sceneFadeEl = document.getElementById("scene-fade");
 const tvMovieEl = document.getElementById("tv-movie");
+const tvVideoEl = document.getElementById("tv-video");
 const holidayEl = document.getElementById("holiday");
 const musicEl = document.getElementById("music");
 const soundEl = document.getElementById("sound");
@@ -338,11 +339,23 @@ function startTvMovie() {
     tvTimer = setTimeout(tick, TV_MIN_MS + Math.random() * (TV_MAX_MS - TV_MIN_MS));
   };
   tick();
+  syncTvVideo();
 }
 
 function stopTvMovie() {
   clearTimeout(tvTimer);
   tvTimer = null;
+  syncTvVideo();
+}
+
+// The holiday film only runs while the set is on and the decorations are up,
+// and it picks up where it left off rather than starting over each time.
+function syncTvVideo() {
+  if (tvTimer !== null && denEl.classList.contains("holiday")) {
+    tvVideoEl.play().catch(() => {});
+  } else {
+    tvVideoEl.pause();
+  }
 }
 
 function startFire() {
@@ -899,6 +912,7 @@ musicEl.addEventListener("pause", reflectMusic);
 function setHoliday(on) {
   denEl.classList.toggle("holiday", on);
   holidayEl.setAttribute("aria-pressed", String(on));
+  syncTvVideo();
 }
 
 holidayEl.addEventListener("click", () => {

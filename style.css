@@ -186,6 +186,21 @@ body {
   opacity: 1;
 }
 
+/* Holiday mode swaps the generated frames for the real film on the same
+   glass. Only one of the two is ever displayed, so they share the fade. */
+.tv-video {
+  display: none;
+  object-fit: cover;
+}
+
+.den.holiday .tv-video {
+  display: block;
+}
+
+.den.holiday #tv-movie {
+  display: none;
+}
+
 /* --- Holiday decorations ---
    Hung above every other layer, including the painted scenes, because they are
    things added to the room rather than a state of it: the scenes are the same

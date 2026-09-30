@@ -42,6 +42,8 @@ other.
 13. `scene_cocoa_1..2.png` — the mouse on the couch holding a mug, then sipping
 14. `scene_couch_1..2.png` — the mouse settled on the couch, lamps up and lamps down
 15. `tv_movie_1..8.png` — the television's glass, animated while a movie is on
+16. `assets/video/great_pumpkin.mp4` — plays on the television's glass instead of
+    the frames above while Holiday mode is on (screen recording, trimmed, 320x240, muted)
 
 **Holiday decorations (9 pieces x 2 lighting states = 18 sprites)**
 

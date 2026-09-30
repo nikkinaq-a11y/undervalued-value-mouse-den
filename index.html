@@ -65,6 +65,11 @@
     <!-- Just the television's glass, so the picture can move while a movie is
          on without another copy of the whole room. -->
     <img class="layer tv-movie" id="tv-movie" alt="" />
+    <!-- In holiday mode the set plays It's the Great Pumpkin, Charlie Brown
+         instead, on the same glass. Muted: the music switch owns the sound. -->
+    <video class="layer tv-movie tv-video" id="tv-video"
+           src="assets/video/great_pumpkin.mp4" muted loop playsinline
+           preload="auto" aria-hidden="true"></video>
 
     <!-- Holiday decorations, hung above every other layer so they stay in the
          room through the painted scenes as well. Two copies of the set: the lit
