@@ -186,11 +186,22 @@ body {
   opacity: 1;
 }
 
-/* Holiday mode swaps the generated frames for the real film on the same
-   glass. Only one of the two is ever displayed, so they share the fade. */
+/* Holiday mode swaps the generated frames for the real film. Only one of the
+   two is ever displayed, so they share the fade. The film runs a little past
+   the glass onto its rim, fitted to the "Movie Fit Example" mockup: art box
+   (118.6, 63.3) 17.1x14.2. The set is seen from its left, so the file is
+   pre-warped to a keystone -- left edge full height from 2.8% down, right edge
+   from the top to 90.8% -- and the clip trims the corners the warp leaves
+   behind. Keep the polygon in step with the perspective= numbers the video
+   was cut with, and use fill, not cover: cover would crop off those corners. */
 .tv-video {
   display: none;
-  object-fit: cover;
+  left: 30.8854%;
+  top: 29.3056%;
+  width: 4.4531%;
+  height: 6.5741%;
+  object-fit: fill;
+  clip-path: polygon(0 2.8%, 100% 0, 100% 90.8%, 0 100%);
 }
 
 .den.holiday .tv-video {
